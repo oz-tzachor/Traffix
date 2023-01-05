@@ -1,0 +1,12 @@
+//Variables
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImZpcnN0TmFtZSI6Im96aW96IiwibGFzdE5hbWUiOiJUemFjaG9yIiwiX2lkIjoiNjM1NjQ2ODk3OWNlMmI0ZGM5OGMwZTA4IiwiZW1haWwiOiJvekB1bW9vdmUubWUiLCJwZXJtaXNzaW9ucyI6InRlYWNoZXIifSwiaWF0IjoxNjY3MTIzMjM4LCJleHAiOjE2NjcyMDk2Mzh9.BwldCNAR3BkPgND9oPmBu8LJ5x1DvBYTfdwRRgIIou0
+@url = localhost:3001
+####
+//get All Classes
+GET http://{{url}}/api/admin/getAllClasses
+content-type: application/json
+Authorization: bearer {{token}}
+
+
+
+//##//

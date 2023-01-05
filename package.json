@@ -1,0 +1,34 @@
+{
+  "name": "traffix",
+  "version": "1.0.0",
+  "description": "dev's project in progress",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js",
+    "startDev": "nodemon index.js"
+  },
+  "author": "Oz-Tzachor",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^5.0.1",
+    "cors": "^2.8.5",
+    "crypto-js": "^4.1.1",
+    "dotenv": "^16.0.1",
+    "express": "^4.18.1",
+    "joi": "^17.6.0",
+    "jsonwebtoken": "^8.5.1",
+    "moment": "^2.29.3",
+    "mongoose": "^6.3.8",
+    "node-cron": "^3.0.0",
+    "node-telegram-bot-api": "^0.57.0",
+    "nodemailer": "^6.7.5",
+    "puppeteer": "^19.4.1",
+    "socket.io": "^4.5.1"
+  },
+  "devDependencies": {
+    "dotenv": "^16.0.1",
+    "nodemon": "^2.0.18",
+    "rest-client": "^0.1.5"
+  }
+}

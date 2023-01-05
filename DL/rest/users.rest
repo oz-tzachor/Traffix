@@ -1,0 +1,32 @@
+//Variables
+@url = localhost:3001
+@expiryTime =U2FsdGVkX18mlH4w5n5rs6531WmBseynPvwVN0RtYSLBkxEBiwXO8ODmAr1hjLmGPor21LdHlPDCzoLI0KXbpL7xMl3JkHJWAMl32%3D
+@encryptedUser = U2FsdGVkX1Por21LdIVJlotkUeLRxMl3JkRIN6rKmAtxqr7lK0hQoYXzhgwH2FrRH0RSI4o0YZA
+@vimToken = "e85ba2c94efa296889a175b8e56fcf33"
+####
+//Video
+GET https://api.vimeo.com/tutorial
+Authorization:  bearer e85ba2c94efa296889a175b8e56fcf33
+//##//
+
+
+####
+
+
+####
+//Get all traf
+POST http://{{url}}/api/traf/all
+content-type: application/json
+
+{
+}
+
+####
+//Get grpah
+POST http://{{url}}/api/traf/chart
+content-type: application/json
+
+{
+}
+
+####
