@@ -19,7 +19,7 @@ const defineGrabbingCron = (expression) => {
       if (scrapTrafficData) {
         startIt();
       } else {
-        sendMessage(chatId, `$Cron run!\n ${new Date().toLocaleString()}`);
+        // sendMessage(chatId, `$Cron run!\n ${new Date().toLocaleString()}`);
       }
     },
     {
