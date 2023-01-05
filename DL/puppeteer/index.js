@@ -15,7 +15,7 @@ const grabData = async (zip) => {
   try {
     let address = `https://www.pkk.bycomputers.com/index.php?zipcode=${zip}`;
     console.log("started:", address);
-    //Initial Navigation
+    // Initial Navigation
 
     let browser = await puppeteer.launch({
       headless: true,
