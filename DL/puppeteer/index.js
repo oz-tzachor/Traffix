@@ -53,7 +53,7 @@ const grabData = async (zip) => {
     await browser.close();
   } catch (e) {
     console.log("e", e);
-    sendMessage(chatId, e || "error occured");
+    // sendMessage(chatId, e || "error occured");
     throw e;
   }
 };
@@ -99,14 +99,14 @@ let startIt = () => {
             text = `${
               results.length
             } traffic datas grabbed successfully and sent to the DB\n ${new Date().toLocaleString()}`;
-            sendMessage(chatId, text || "No text provided-some error");
+            // sendMessage(chatId, text || "No text provided-some error");
           }, 2000);
         }, 3000);
       } else {
-        sendMessage(
-          chatId,
-          "XXX Some problem has occured - tried and no data XXX"
-        );
+        // sendMessage(
+        //   chatId,
+        //   "XXX Some problem has occured - tried and no data XXX"
+        // );
       }
     }
   };

@@ -26,8 +26,8 @@ require("./DL/db")
         console.log(`server is running => ${PORT || 5000}`)
       ),
       createAllGrabCrons(),
-    loadMainSocket(io),
-    dealWithMessage()
+    // loadMainSocket(io),
+    // dealWithMessage()
   )
   .catch((e) => console.log("error", e));
 
