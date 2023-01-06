@@ -28,5 +28,14 @@ content-type: application/json
 
 {
 }
+####
+
+//Get avg
+POST http://{{url}}/api/traf/avg
+content-type: application/json
+
+{
+    "zip":144
+}
 
 ####

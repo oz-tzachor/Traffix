@@ -12,6 +12,11 @@ router.post("/chart", async (req, res) => {
   sendImage(chatId, newGraph);
   res.send(newGraph);
 });
+router.post("/avg", async (req, res) => {
+  const avg = await trafficUpdateLogic.getTrafficRouteAvg({zip:req.body.zip});
+  // sendImage(chatId, newGraph);
+  res.send(avg);
+});
 router.post("/all", async (req, res) => {
   console.log("req body", req.body);
   const trafs = await trafficUpdateLogic.getAllTrafUpdates(req.body);

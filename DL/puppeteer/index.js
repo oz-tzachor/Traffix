@@ -10,7 +10,7 @@ let zips = [144, 145, 146, 147, 148, 149, 150, 230, 231, 300];
 const grabData = async (zip) => {
   try {
     let address = `https://www.pkk.bycomputers.com/index.php?zipcode=${zip}`;
-    console.log("started:");
+    console.log("started:" ,zip);
     // Initial Navigation
 
     let browser = await puppeteer.launch({
@@ -34,11 +34,6 @@ const grabData = async (zip) => {
     let startTitle = dataEl.indexOf(">") + 1;
     let endTtile = dataEl.indexOf("</");
     let title = dataEl.substring(startTitle, endTtile);
-    ///screenshot
-    // let path = `uploads/${Date.now()}-${zip}.png`;
-    // await ele.screenshot({ path });
-    // sendImage(chatId, path);
-
     //Date
     let startDate = dataEl.indexOf("2023");
     let end = dataEl.length;
