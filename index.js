@@ -3,7 +3,7 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 const { Server } = require("socket.io");
 
-require("dotenv").config();
+// require("dotenv").config();
 // if (require("os").hostname().indexOf("local") > -1) {
 // }
 const { dealWithMessage } = require("./DL/bot/bot");
@@ -25,7 +25,7 @@ require("./DL/db")
       app.listen(PORT || 5000, () =>
         console.log(`server is running => ${PORT || 5000}`)
       ),
-      // createAllGrabCrons(),
+      createAllGrabCrons(),
     // loadMainSocket(io),
     // dealWithMessage()
   )
