@@ -38,9 +38,11 @@ const grabData = async (zip) => {
     let startDate = dataEl.indexOf("2023");
     let end = dataEl.length;
     let dateOfUpdate = dataEl.substring(startDate, end);
+    let dayOfTheWeek = new Date(dateOfUpdate).getDay();
+
     //Saving
-    if (title && dateOfUpdate && time && zip) {
-      let result = { title, dateOfUpdate, time, zip };
+    if (title && dateOfUpdate && time && zip&&dayOfTheWeek) {
+      let result = { title, dateOfUpdate, time, zip ,dayOfTheWeek};
       results.push(result);
       let lastUpdateForRoute = await trafLogic.getTrafficUpdate(
         { zip },
