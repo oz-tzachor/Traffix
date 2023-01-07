@@ -11,8 +11,8 @@ let expressionsPerTime = {
   H_10_AM_TO_13_PM: "*/5 10-13/1 * * *",
   H_14_PM_TO_18_PM: "*/2 14-18/1 * * *",
   H_19_PM_TO_23_PM: "*/5 19-23/1 * * *",
-  H_0_AM_TO_3_AM: "*/15 0-3/1 * * *",
-  H_4_AM_TO_5_AM: "*/20 4-5/1 * * *",
+  H_0_AM_TO_3_AM: "*/10 0-3/1 * * *",
+  H_4_AM_TO_5_AM: "*/14 4-5/1 * * *",
 };
 
 const defineGrabbingCron = (expression) => {
