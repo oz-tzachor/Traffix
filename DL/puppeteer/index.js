@@ -10,7 +10,7 @@ let zips = [144, 145, 146, 147, 148, 149, 150, 230, 231, 300];
 const grabData = async (zip) => {
   try {
     let address = `https://www.pkk.bycomputers.com/index.php?zipcode=${zip}`;
-    console.log("started:" ,zip);
+    console.log("started:", zip);
     // Initial Navigation
 
     let browser = await puppeteer.launch({
@@ -42,7 +42,15 @@ const grabData = async (zip) => {
     if (title && dateOfUpdate && time && zip) {
       let result = { title, dateOfUpdate, time, zip };
       results.push(result);
-      await trafLogic.newTrafficUpdate(result);
+      let lastUpdateForRoute = await trafLogic.getTrafficUpdate(
+        { zip },
+        { sort: { dateOfUpdate: -1 } }
+      );
+      if (lastUpdateForRoute.dateOfUpdate === dateOfUpdate) {
+        console.log("The same data grabbed- avoiding this data");
+      } else {
+        await trafLogic.newTrafficUpdate(result);
+      }
       //  getTrafficRouteAvg({ zip: 144 });
     }
     await browser.close();
