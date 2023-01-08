@@ -18,7 +18,8 @@ const grabData = async (type = "waze", route = undefined) => {
     } else if (type === "pkk") {
       address = `https://www.pkk.bycomputers.com/index.php?zipcode=${route.zip}`;
     }
-    console.log("started:", address);
+    let title = `${route.from} - ${route.to}`;
+    console.log("started in waze:", title);
     //Initial Navigation
     const page = await browser.newPage();
     await page.goto(address, { waitUntil: "networkidle0" });
@@ -53,7 +54,7 @@ const grabData = async (type = "waze", route = undefined) => {
         return element.innerHTML;
       });
       //title
-      let title = `${route.from} - ${route.to}`;
+     
       //time
       let startCutTime = allUl.indexOf('s">') + 3;
       let endCutTime = allUl.indexOf(" דקות");
@@ -78,7 +79,6 @@ const grabData = async (type = "waze", route = undefined) => {
           type,
           route: routeId,
         };
-        results.push(result);
         let lastUpdateForRoute = await trafLogic.getTrafficUpdate(
           { wazeUrl: { $ne: null } },
           { sort: { dateOfUpdate: -1 } }
@@ -142,7 +142,6 @@ let grabFromWaze = async () => {
         );
       } else {
         console.log("Done !");
-        console.log(results);
       }
     };
     runFunc(
