@@ -2,16 +2,27 @@ const mongoose = require("mongoose");
 
 const TrafficRoute = new mongoose.Schema(
   {
-    title: {
+    from: {
+      type: String,
+      required: true,
+    },
+    to: {
       type: String,
       required: true,
     },
     zip: {
       type: Number,
-      required: true,
     },
+    wazeUrl: {
+      type: String,
+    },
+    avgByDays: {},
+    isTrafficJam: { type: Boolean, default: false },
+    isActive: { type: Boolean, default: true },
   },
-  { timestamps: true }
+  { timestamps: {} }
 );
 
 module.exports = mongoose.model("TrafficRoute", TrafficRoute);
+
+let avgBuild = {};

@@ -14,28 +14,40 @@ Authorization:  bearer e85ba2c94efa296889a175b8e56fcf33
 
 
 ####
-//Get all traf
-POST http://{{url}}/api/traf/all
+//Get all traff
+POST http://{{url}}/api/traffUpdate/all
 content-type: application/json
 
 {
+    "zip":144,
+    "dateOfUpdate":{"$gte":
+    "2023-01-01","$lt":"2023-01-05"
+    }
 }
 
 ####
 //Get grpah
-POST http://{{url}}/api/traf/chart
+POST http://{{url}}/api/traffUpdate/chart
 content-type: application/json
 
 {
 }
 ####
 
-//Get avg
-POST http://{{url}}/api/traf/avg
+
+//Fix data
+POST http://{{url}}/api/traffUpdate/fix
 content-type: application/json
 
 {
-    "zip":144
+}
+
+####
+####
+//Get One
+POST http://{{url}}/api/traffUpdate/one
+
+{
 }
 
 ####

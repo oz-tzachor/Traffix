@@ -3,17 +3,11 @@ const { auth } = require("../Middleware/auth");
 const mainRouter = express.Router();
 
 const userRouter = require("./userRouter");
-const dashboardRouter = require("./dashboardRouter");
-const budgetRouter = require("./budgetRouter");
-const expenseRouter = require("./expenseRouter");
-const testRouter = require("./testRouter");
-const trafRouter = require("./trafficUpdateRouter");
+const trafUpdateRouter = require("./trafficUpdateRouter");
+const trafRouteRouter = require("./trafficRouteRouter");
 
-mainRouter.use("/traf", trafRouter);
+mainRouter.use("/traffUpdate", trafUpdateRouter);
+mainRouter.use("/traffRoute", trafRouteRouter);
 // mainRouter.use("/user", userRouter);
-// mainRouter.use("/dashboard", auth, dashboardRouter);
-// mainRouter.use("/budget", auth, budgetRouter);
-// mainRouter.use("/expense", auth, expenseRouter);
-// mainRouter.use("/test", testRouter);
 
 module.exports = mainRouter;

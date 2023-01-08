@@ -8,7 +8,7 @@ async function read(filter) {
   return await TelegramUserModel.find(filter);
 }
 async function update(filter, newData) {
-  return await TelegramUserModel.updateOne(filter, newData);
+  return await TelegramUserModel.updateOne(filter, newData, { new: true });
 }
 async function del(filter) {
   await update(filter, { isActive: flase });

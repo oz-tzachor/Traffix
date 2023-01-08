@@ -1,9 +1,10 @@
 const cron = require("node-cron");
-const { startIt } = require("../puppeteer/index");
+const { startIt } = require("../puppeteer/grabFromPkk");
 let chatId = 160151970;
 const { sendMessage } = require("../bot/bot");
 const { getAllTrafUpdates } = require("../../BL/trafficUpdateLogic");
 const { getDatesForDailyAvg } = require("../moment/moment");
+const { grabFromWaze } = require("../puppeteer/grabFromWaze");
 //Flag for scrap
 let scrapTrafficData = true;
 let expressionsPerTime = {
@@ -15,15 +16,11 @@ let expressionsPerTime = {
   H_4_AM_TO_5_AM: "*/14 4-5/1 * * *",
 };
 
-const defineGrabbingCron = (expression) => {
+const defineGrabbingCron = (expression, callback) => {
   cron.schedule(
     expression,
     function () {
-      if (scrapTrafficData) {
-        startIt();
-      } else {
-        // sendMessage(chatId, `$Cron run!\n ${new Date().toLocaleString()}`);
-      }
+      callback();
     },
     {
       scheduled: true,
@@ -35,25 +32,12 @@ const defineGrabbingCron = (expression) => {
 let createAllGrabCrons = () => {
   //
   Object.keys(expressionsPerTime).forEach((key) => {
-    defineGrabbingCron(expressionsPerTime[key]);
+    defineGrabbingCron(expressionsPerTime[key],startIt);
   });
-};
-//
-let activateAvgCrons = () => {
-  // cron.schedule(
-  //   "59 23 * * *",
-  //   async function () {
-  //     console.log("getting");
-  //     let dates = getCurrDayDates();
-  //     console.log("dates", dates);
-  //     console.log("data", data);
-  //   },
-  //   {
-  //     scheduled: true,
-  //     timezone: "Asia/Jerusalem",
-  //   }
-  // );
-};
+  // waze grabbing
+  let wazeExpression =  "*7 * * * *"
+  defineGrabbingCron(wazeExpression,grabFromWaze);
 
-const crons = { createAllGrabCrons, activateAvgCrons };
+};
+const crons = { createAllGrabCrons };
 module.exports = crons;

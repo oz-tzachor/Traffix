@@ -1,7 +1,6 @@
 const TelegramBot = require("node-telegram-bot-api");
 const fs = require("fs");
 const nodemailer = require("nodemailer");
-const { createNewExpense } = require("../../BL/expenseLogic");
 const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
 let bot;
 let emojis = {

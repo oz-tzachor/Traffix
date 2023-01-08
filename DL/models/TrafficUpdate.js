@@ -12,9 +12,11 @@ const TrafficUpdate = new mongoose.Schema(
     },
     zip: {
       type: Number,
-      required: true,
     },
+    route: { type: mongoose.SchemaTypes.ObjectId, ref: "TrafficRoute" },
+    source: { type: String, default: "pkk" },
     dateOfUpdate: { type: String, required: true },
+    dayOfTheWeek: { type: Number, required: true },
   },
   { timestamps: true }
 );

@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const trafficUpdateLogic = require("../BL/trafficUpdateLogic");
+const trafController = require("../DL/Controllers/trafficUpdateController");
 let chatId = 160151970;
 const { sendMessage, sendImage } = require("../DL/bot/bot");
 router.post("/new", async (req, res) => {
@@ -12,8 +13,14 @@ router.post("/chart", async (req, res) => {
   sendImage(chatId, newGraph);
   res.send(newGraph);
 });
-router.post("/avg", async (req, res) => {
-  const avg = await trafficUpdateLogic.getTrafficRouteAvg({zip:req.body.zip});
+
+router.post("/fix", async (req, res) => {
+  const avg = await trafficUpdateLogic.addDayToAll();
+  // sendImage(chatId, newGraph);
+  res.send(avg);
+});
+router.post("/one", async (req, res) => {
+  const avg = await trafController.readOne({zip:144})
   // sendImage(chatId, newGraph);
   res.send(avg);
 });
