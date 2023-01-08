@@ -33,7 +33,7 @@ require("./DL/db")
         dealWithMessage();
       }
       if(!production){
-        createAllGrabCrons();
+        // createAllGrabCrons();
       }
       // loadMainSocket(io),
       // dealWithMessage()

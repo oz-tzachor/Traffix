@@ -2,8 +2,7 @@ const puppeteer = require("puppeteer");
 const trafficRouteLogic = require("../../BL/trafficRouteLogic");
 const trafficUpdateLogic = require("../../BL/trafficUpdateLogic");
 const { getDate } = require("../moment/moment");
-let browser;
-const grabData = async (type = "waze", route = undefined) => {
+const grabData = async (browser, type = "waze", route = undefined) => {
   let address;
   try {
     if (type === "waze") {
@@ -62,20 +61,20 @@ const grabData = async (type = "waze", route = undefined) => {
       let est = allUl.slice(startCutEst, endCutEst);
       // console.log("est from waze", est);
       console.log("time from waze", time, "\n", "est from waze", est, "\n");
-      let dateOfUpdate = getDate().toISOString()
+      let dateOfUpdate = getDate().toISOString();
       let dayOfTheWeek = new Date(dateOfUpdate).getDay();
       //Saving
       let routeId = route._id;
-      if ((title && dateOfUpdate && time && dayOfTheWeek)) {
+      if (title && dateOfUpdate && time && dayOfTheWeek) {
         let result = {
           title,
           dateOfUpdate,
           time,
           dayOfTheWeek,
           route: routeId,
-          source:"waze"
+          source: "waze",
         };
-        console.log('result',result);
+        console.log("result", result);
         let lastUpdateForRoute = await trafficUpdateLogic.getTrafficUpdate(
           { wazeUrl: { $ne: null } },
           { sort: { dateOfUpdate: -1 } }
@@ -94,7 +93,7 @@ const grabData = async (type = "waze", route = undefined) => {
       console.log("started in pkk:", address);
 
       let mainDataSelector =
-       "body > div > div:nth-child(2) > div:nth-child(1) > div:nth-child(12) > div"
+        "body > div > div:nth-child(2) > div:nth-child(1) > div:nth-child(12) > div";
       // let mainDataSelector =
       //   "body > div > div:nth-child(2) > div:nth-child(1) > div:nth-child(13) > div";
       let timeSelector = mainDataSelector + " > b:nth-child(3)";
@@ -104,7 +103,7 @@ const grabData = async (type = "waze", route = undefined) => {
       await page.goto(address, { waitUntil: "networkidle0" });
       //
       //Start scrap
-      await page.waitForSelector(mainDataSelector,{timeout:4000});
+      await page.waitForSelector(mainDataSelector, { timeout: 4000 });
       const ele = await page.$(mainDataSelector);
 
       let dataEl = await page.$eval(mainDataSelector, (element) => {
@@ -149,8 +148,8 @@ const grabData = async (type = "waze", route = undefined) => {
 };
 
 ///
-let runFunc = (type, route, callback, stop) => {
-  grabData(type, route)
+let runFunc = (browser, type, route, callback, stop) => {
+  grabData(browser, type, route)
     .then(() => {
       console.log("grab ended!");
       callback();
@@ -161,26 +160,31 @@ let runFunc = (type, route, callback, stop) => {
 };
 
 let grabFromWaze = async () => {
+  //mian function
   try {
     let routes = await trafficRouteLogic.getTrafficRoutes({
-      isActive:true
+      isActive: true,
     });
     let indexInAddress = 0;
     let addressLength = routes.length;
     console.log("routes", routes.length);
-    browser = await puppeteer.launch({
+    let browser = await puppeteer.launch({
       headless: true,
       args: ["--no-sandbox"],
     });
     let stop = () => {
       indexInAddress = addressLength + 2;
+      console.log('closing browser!');
       browser.close();
     };
     let callBack = () => {
       indexInAddress++;
       if (indexInAddress < addressLength) {
         let type;
-        if (routes[indexInAddress].type == null||!routes[indexInAddress].type) {
+        if (
+          routes[indexInAddress].type == null ||
+          !routes[indexInAddress].type
+        ) {
           if (routes[indexInAddress].zip) {
             type = "pkk";
           } else {
@@ -190,13 +194,13 @@ let grabFromWaze = async () => {
           type = routes[indexInAddress].type;
         }
 
-        runFunc(type, routes[indexInAddress], callBack, stop);
+        runFunc(browser, type, routes[indexInAddress], callBack, stop);
       } else {
         console.log("Done !");
       }
     };
     let type;
-    if (routes[indexInAddress].type == null||!routes[indexInAddress].type) {
+    if (routes[indexInAddress].type == null || !routes[indexInAddress].type) {
       if (routes[indexInAddress].zip) {
         type = "pkk";
       } else {
@@ -205,7 +209,7 @@ let grabFromWaze = async () => {
     } else {
       type = routes[indexInAddress].type;
     }
-    runFunc(type, routes[indexInAddress], callBack, stop);
+    runFunc(browser, type, routes[indexInAddress], callBack, stop);
   } catch (e) {
     console.log("e", e);
   }
