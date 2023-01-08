@@ -9,6 +9,10 @@ const validatePassExpiry = (time) => {
   return expired;
 };
 
+const getDate = ()=>{
+  return moment()
+}
+
 const getDatesForDailyAvg = () => {
   try {
     // midnight
@@ -37,5 +41,6 @@ const momentFunctions = {
   resetPassExpiry,
   validatePassExpiry,
   getDatesForDailyAvg,
+  getDate
 };
 module.exports = momentFunctions;

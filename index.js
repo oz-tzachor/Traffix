@@ -32,6 +32,9 @@ require("./DL/db")
       if (production && !prodGrab) {
         dealWithMessage();
       }
+      if(!production){
+        createAllGrabCrons();
+      }
       // loadMainSocket(io),
       // dealWithMessage()
     })

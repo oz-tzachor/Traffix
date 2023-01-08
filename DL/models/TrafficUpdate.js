@@ -14,7 +14,7 @@ const TrafficUpdate = new mongoose.Schema(
       type: Number,
     },
     route: { type: mongoose.SchemaTypes.ObjectId, ref: "TrafficRoute" },
-    source: { type: String, default: "pkk" },
+    source: { type: String, default: "waze" },
     dateOfUpdate: { type: String, required: true },
     dayOfTheWeek: { type: Number, required: true },
   },

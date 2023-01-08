@@ -17,6 +17,7 @@ const TrafficRoute = new mongoose.Schema(
       type: String,
     },
     avgByDays: {},
+    type: { type: String, enum: ["waze", "pkk"],default:'waze' },
     isTrafficJam: { type: Boolean, default: false },
     isActive: { type: Boolean, default: true },
   },
