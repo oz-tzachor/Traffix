@@ -65,7 +65,7 @@ const grabData = async (browser, type = "waze", route = undefined) => {
       let dayOfTheWeek = new Date(dateOfUpdate).getDay();
       //Saving
       let routeId = route._id;
-      if (title && dateOfUpdate && time && dayOfTheWeek) {
+      if (title && dateOfUpdate && time && dayOfTheWeek.toString()) {
         let result = {
           title,
           dateOfUpdate,
@@ -85,6 +85,8 @@ const grabData = async (browser, type = "waze", route = undefined) => {
           await trafficUpdateLogic.newTrafficUpdate(result);
         }
         //  getTrafficRouteAvg({ zip: 144 });
+      }else{
+        console.log('not all the fields exist');
       }
       await page.close();
       // await browser.close();
@@ -125,7 +127,6 @@ const grabData = async (browser, type = "waze", route = undefined) => {
       //Saving
       if ((title && dateOfUpdate && time && zip && dayOfTheWeek, type)) {
         let result = { title, dateOfUpdate, time, zip, dayOfTheWeek, type };
-        results.push(result);
         let lastUpdateForRoute = await trafLogic.getTrafficUpdate(
           { zip },
           { sort: { dateOfUpdate: -1 } }
@@ -197,6 +198,8 @@ let grabFromWaze = async () => {
         runFunc(browser, type, routes[indexInAddress], callBack, stop);
       } else {
         console.log("Done !");
+        stop();
+
       }
     };
     let type;
