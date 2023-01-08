@@ -39,7 +39,7 @@ const grabData = async (zip) => {
     let end = dataEl.length;
     let dateOfUpdate = dataEl.substring(startDate, end);
     let dayOfTheWeek = new Date(dateOfUpdate).getDay();
-let type="pkk"
+    let type="pkk"
     //Saving
     if (title && dateOfUpdate && time && zip&&dayOfTheWeek,type) {
       let result = { title, dateOfUpdate, time, zip ,dayOfTheWeek,type};

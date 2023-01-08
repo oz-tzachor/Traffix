@@ -35,7 +35,7 @@ let createAllGrabCrons = () => {
     defineGrabbingCron(expressionsPerTime[key],startIt);
   });
   // waze grabbing
-  let wazeExpression =  "*7 * * * *"
+  let wazeExpression =  "*/7 * * * *"
   defineGrabbingCron(wazeExpression,grabFromWaze);
 
 };

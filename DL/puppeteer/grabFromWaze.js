@@ -52,6 +52,8 @@ const grabData = async (type = "waze", route = undefined) => {
       let allUl = await page.$eval(foundedElement, (element) => {
         return element.innerHTML;
       });
+      //title
+      let title = `${route.from} - ${route.to}`
       //time
       let startCutTime = allUl.indexOf('s">') + 3;
       let endCutTime = allUl.indexOf(" דקות");
@@ -62,6 +64,26 @@ const grabData = async (type = "waze", route = undefined) => {
       let startCutEst = endCutEst - 8;
       let est = allUl.slice(startCutEst, endCutEst);
       console.log("est from waze", est);
+      let dateOfUpdate = new Date();
+      let dayOfTheWeek = dateOfUpdate.getDay();
+      let type="waze"
+      //Saving
+      if (title && dateOfUpdate && time &&dayOfTheWeek,type) {
+        let result = { title, dateOfUpdate, time ,dayOfTheWeek,type};
+        results.push(result);
+        let lastUpdateForRoute = await trafLogic.getTrafficUpdate(
+          { wazeUrl:{$ne:null} },
+          { sort: { dateOfUpdate: -1 } }
+        );
+        if (lastUpdateForRoute.dateOfUpdate === dateOfUpdate) {
+          console.log("The same data grabbed- avoiding this data");
+        } else {
+          await trafLogic.newTrafficUpdate(result);
+        }
+        //  getTrafficRouteAvg({ zip: 144 });
+      }
+
+
       await page.close();
 
       // await browser.close();
