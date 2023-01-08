@@ -12,11 +12,10 @@ if (!production) {
 const { dealWithMessage } = require("./DL/bot/bot");
 const router = require("./Routers");
 const cors = require("cors");
-const { createAllGrabCrons,activateAvgCrons } = require("./DL/cron/cron");
-const { grabFromWaze } = require("./DL/puppeteer/grabFromWaze");
-const io = new Server(4001, {
-  cors: "*",
-});
+const { createAllGrabCrons } = require("./DL/cron/cron");
+// const io = new Server(4001, {
+//   cors: "*",
+// });
 
 app.use(express.json());
 app.use(cors({ origin: "*" }));
@@ -39,4 +38,4 @@ require("./DL/db")
   )
   .catch((e) => console.log("error", e));
 
-module.exports = { app, io };
+module.exports = { app };
