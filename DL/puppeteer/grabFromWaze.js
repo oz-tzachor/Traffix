@@ -1,5 +1,6 @@
 const puppeteer = require("puppeteer");
 const trafficRouteLogic = require("../../BL/trafficRouteLogic");
+const trafficUpdateLogic= require("../../BL/trafficUpdateLogic");
 let browser;
 let addressWaze1 =
   "https://www.waze.com/he/live-map/directions/%D7%90%D7%A8%D7%99%D7%90%D7%9C?to=place.ChIJ6_6XBwsnHRURrbo12csDrug&from=place.w.23134528.231083132.22422";
@@ -59,7 +60,7 @@ const grabData = async (type = "waze", route = undefined) => {
       let startCutTime = allUl.indexOf('s">') + 3;
       let endCutTime = allUl.indexOf(" דקות");
       let time = allUl.slice(startCutTime, endCutTime);
-      console.log("time from waze", time);
+      console.log("time from waze", time,"\n","est from waze", est,"\n");
       //estimation
       let endCutEst = allUl.indexOf("M</span>") + 1;
       let startCutEst = endCutEst - 8;
@@ -79,14 +80,14 @@ const grabData = async (type = "waze", route = undefined) => {
           type,
           route: routeId,
         };
-        let lastUpdateForRoute = await trafLogic.getTrafficUpdate(
+        let lastUpdateForRoute = await trafficUpdateLogic.getTrafficUpdate(
           { wazeUrl: { $ne: null } },
           { sort: { dateOfUpdate: -1 } }
         );
         if (lastUpdateForRoute.dateOfUpdate === dateOfUpdate) {
           console.log("The same data grabbed- avoiding this data");
         } else {
-          await trafLogic.newTrafficUpdate(result);
+          await trafficUpdateLogic.newTrafficUpdate(result);
         }
         //  getTrafficRouteAvg({ zip: 144 });
       }
