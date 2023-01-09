@@ -2,6 +2,8 @@ const TelegramBot = require("node-telegram-bot-api");
 const fs = require("fs");
 const nodemailer = require("nodemailer");
 const { newMessage } = require("./messages");
+const { analyzeTheData } = require("../../BL/trafficRouteLogic");
+const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
 const TELEGRAM_TOKEN_DEV = process.env.TELEGRAM_TOKEN_DEV;
 let bot;
 let devBot;
@@ -83,6 +85,10 @@ let dealWithMessage = async () => {
         let text = msg.text;
         let messageToSent = ``;
         console.log("new message", text, chatId);
+        if (text.toLowerCase() === "analyze") {
+          analyzeTheData();
+          return;
+        }
         //
         // var keyboards = {
         //   main_menu: {
@@ -128,6 +134,14 @@ let dealWithMessage = async () => {
 let activateDevBot = () => {
   try {
     devBot = new TelegramBot(TELEGRAM_TOKEN_DEV, { polling: true });
+    devBot.on("message", async (msg) => {
+      let chatId = msg.chat.id;
+      let text = msg.text;
+      if (text.toLowerCase() === "analyze") {
+        analyzeTheData();
+        return;
+      }
+    });
   } catch (e) {
     console.log("error in dev bot", e);
   }

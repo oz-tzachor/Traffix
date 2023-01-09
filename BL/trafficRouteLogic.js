@@ -6,7 +6,8 @@ const {
   checkNewerUpdate,
   getDatesForDailyAvg,
 } = require("../DL/moment/moment");
-const { sendMessageDev } = require("../DL/bot/bot");
+const { sendMessageDev, sendMessage } = require("../DL/bot/bot");
+const { production } = require("..");
 // const { createImage } = require("../DL/chart/chart");
 
 ///New route
@@ -98,20 +99,38 @@ const getTrafficRouteAvgGeneral = async (filter, type = "daily") => {
     };
     //
     let data;
+    if (filter.route.toString() === "63bc4da2a3f44dfe5c611479") {
+      console.log("x");
+    }
     if (prevAvgByDaysData) {
+      let tempFilter = filter
       //if there is earlier data of this route - keep with update each day separatley - and keep with the filter of the dates
-      data = await trafficUpdateController.read(filter);
+      if (currentRoute.zip) {
+        let { route, dateOfUpdate } = filter;
+         tempFilter = {
+          $or: [{ route }, { zip: currentRoute.zip }],
+          dateOfUpdate,
+        };
+      }
+      data = await trafficUpdateController.read(tempFilter);
       // console.log('filter',filter);
       // console.log("There is earlier data - getting by date");
     } else {
+      let tempFilter = filter;
       //if there is מם earlier data of this route -change filter to get all the data of this route and calc avg
-      filter = { route: filter.route };
-      data = await trafficUpdateController.read(filter);
+      if (currentRoute.zip) {
+        let { route, dateOfUpdate } = filter;
+        tempFilter = { route: filter.route };
+        tempFilter = {
+          $or: [{ route }, { zip: currentRoute.zip }],
+        };
+      }
+      data = await trafficUpdateController.read(tempFilter);
       // console.log(data[data.length - 1].dateOfUpdate);
       //force collecting all data
       currentRoute.lastAvgUpdate = new Date(
         data[data.length - 1].dateOfUpdate
-      ).setDate(new Date(data[data.length - 1].dateOfUpdate).getDate() - 1);
+      ).setDate(new Date(data[data.length - 1].dateOfUpdate).getDate() - 7);
       console.log("updated", currentRoute.lastAvgUpdate);
       // console.log("no earlier data - getting all");
     }
@@ -139,7 +158,10 @@ const getTrafficRouteAvgGeneral = async (filter, type = "daily") => {
         // console.log("day of th eitem", dayOfTheItem);
         return (
           dayOfTheItem === Number(day) &&
-          checkNewerUpdate(data.dateOfUpdate, currentRoute.lastAvgUpdate)
+          checkNewerUpdate(
+            new Date(data.dateOfUpdate),
+            currentRoute.lastAvgUpdate
+          )
         );
       });
       // if (!dayArr.length) {
@@ -280,6 +302,8 @@ const getTrafficRouteAvgGeneral = async (filter, type = "daily") => {
           console.log("working on the same data");
         }
         return resultsMain[currDayOfTheWeek];
+
+        // /////////////////////////////////////////////////
       } else if (type === "weekly" || !prevAvgByDaysData) {
         Object.keys(resultsMain).forEach((index) => {
           resultByWeek[index] = resultsMain[index];
@@ -310,10 +334,50 @@ const getTrafficRouteAvgGeneral = async (filter, type = "daily") => {
     console.log("e", e);
   }
 };
+//Analyze the data
 
+let analyzeTheData = async () => {
+  try {
+    console.log("Start analyze");
+    let routes = await getTrafficRoutes({ isActive: true });
+    let index = 0;
+    let textMessage = "";
+    for (let index = 0; index < routes.length; index++) {
+      let multiply = 100 / (24 * 7);
+      let totalPercantages = 0;
+      textMessage += `${routes[index].from} - ${routes[index].to}\n`;
+      const avgByDays = routes[index].avgByDays;
+      if(avgByDays){
+        Object.keys(avgByDays).forEach((day) => {
+          //days
+          Object.keys(avgByDays[day]).forEach((hour) => {
+            //hours
+            if (avgByDays[day][hour]["hourAvg"].value > 0) {
+              totalPercantages += multiply;
+            }
+          });
+        });
+        textMessage += `${Math.floor(totalPercantages)}% הושלמו!\n\n`;
+      }else{
+        textMessage+='\nאין מידע על נתיב זה'
+      }
+    }
+    // let chatIdDev = 160151970;
+    // if (production) {
+    //   sendMessageDev(textMessage);
+    // } else {
+    //   console.log(textMessage);
+    //   // sendMessage(chatIdDev, textMessage);
+    // }
+    console.log(textMessage);
+    console.log("done");
+  } catch (e) {
+    console.log("error", e);
+  }
+};
 //Daily avg calculation for all the routes
 let manageRouteAvg = async () => {
-  sendMessageDev('Start calculation of daily avg of all routes')
+  // sendMessageDev("Start calculation of daily avg of all routes");
   //main function
   try {
     let routes = await getTrafficRoutes({
@@ -334,7 +398,7 @@ let manageRouteAvg = async () => {
           callback();
         })
         .catch((e) => {
-          sendMessageDev("Daily avg calc failed:\n\n\n", e);
+          // sendMessageDev("Daily avg calc failed:\n\n\n", e);
           stop();
         });
     };
@@ -351,7 +415,7 @@ let manageRouteAvg = async () => {
         runFunc(filter, callBack, stop);
       } else {
         console.log("Done !");
-        sendMessageDev("Daily avg calc done successfully!");
+        // sendMessageDev("Daily avg calc done successfully!");
 
         stop();
       }
@@ -359,7 +423,7 @@ let manageRouteAvg = async () => {
     //call to the function to trigger the loop
     runFunc(filter, callBack, stop);
   } catch (e) {
-    console.log("e", e);
+    console.log("avg calc error", e);
   }
 };
 
@@ -368,5 +432,7 @@ let trafRequests = {
   updateRouteDetails,
   getTrafficRoutes,
   manageRouteAvg,
+  analyzeTheData,
+  getTrafficRouteAvgGeneral,
 };
 module.exports = trafRequests;

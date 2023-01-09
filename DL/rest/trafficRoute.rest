@@ -8,10 +8,10 @@ POST http://{{url}}/api/traffRoute/new
 content-type: application/json
 
 {
-    "from": "צומת שילת",
-    "to": "צומת גבעת זאב (מחנה עופר)",
+    "to": "אריאל",
+    "from": "מחלף אורנית (שער השומרון)",
     "type": "waze",
-    "wazeUrl":"https://www.waze.com/he/live-map/directions/%D7%91%D7%99%D7%AA-%D7%A1%D7%95%D7%94%D7%A8-%D7%A2%D7%95%D7%A4%D7%A8?to=place.ChIJ08LMywXVAhUR-FkownNAB3c&from=place.w.22937919.229510263.21013"
+    "wazeUrl":"https://www.waze.com/he/live-map/directions/%D7%90%D7%A8%D7%99%D7%90%D7%9C?to=place.ChIJ6_6XBwsnHRURrbo12csDrug&from=place.w.22937921.229379211.7598"
 }
 ####
 
