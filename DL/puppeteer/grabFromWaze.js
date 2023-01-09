@@ -61,7 +61,7 @@ const grabData = async (browser, type = "waze", route = undefined) => {
       let est = allUl.slice(startCutEst, endCutEst);
       // console.log("est from waze", est);
       console.log("time from waze", time, "\n", "est from waze", est, "\n");
-      let dateOfUpdate = getDate().toISOString();
+      let dateOfUpdate = getDate().toLocaleString();
       let dayOfTheWeek = new Date(dateOfUpdate).getDay();
       //Saving
       let routeId = route._id;
@@ -199,7 +199,6 @@ let grabFromWaze = async () => {
       } else {
         console.log("Done !");
         stop();
-
       }
     };
     let type;
