@@ -1,7 +1,7 @@
 const express = require("express");
 const app = express();
 //production flags
-let production = false; //means not in localhost
+let production = true; //means not in localhost
 let prodGrab = true; //means that version of the grabber - to avoid conflict when grab runing online and localhost trying to grab also
 let prodBot = false; //means that version of the grabber - to avoid conflict when grab runing online and localhost trying to grab also
 const PORT = process.env.PORT || 3001;
@@ -37,8 +37,7 @@ require("./DL/db")
         dealWithMessage();
       }
       if (!production) {
-        createAllGrabCrons();
-
+        // createAllGrabCrons();
         // grabFromWaze()
         // dealWithMessage()
       }
