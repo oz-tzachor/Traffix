@@ -313,6 +313,7 @@ const getTrafficRouteAvgGeneral = async (filter, type = "daily") => {
 
 //Daily avg calculation for all the routes
 let manageRouteAvg = async () => {
+  sendMessageDev('Start calculation of daily avg of all routes')
   //main function
   try {
     let routes = await getTrafficRoutes({

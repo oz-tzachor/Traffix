@@ -34,9 +34,11 @@ const defineNewCron = (expression, callback) => {
 let createAllGrabCrons = () => {
   //waze Expression
   let wazeExpression = "*/7 * * * *";
+  console.log("waze grab cron defined:", wazeExpression);
   defineNewCron(wazeExpression, grabFromWaze);
   // calc avg expression
   let caclAvgExpressoin = "59 23 * * *";
+  console.log("avg cron defined:", caclAvgExpressoin);
   defineNewCron(caclAvgExpressoin, manageRouteAvg);
 
   // grabFromWaze()//development
