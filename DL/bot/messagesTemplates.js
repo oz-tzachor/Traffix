@@ -33,7 +33,7 @@ exports.followTheInstructionsNumbers = () => {
 
 //login process
 exports.loginMessage = () => {
-  let message = `היי, נראה שעוד לא התחברת למערכת שלנו ${emojis.sad}${twoLine}אם ברצונך להתחבר - אנא שלח 1 `;
+  let message = `היי, נראה שעוד לא התחברת למערכת שלנו ${emojis.sad}`;
   return message;
 };
 exports.inputEmailMessage = () => {
@@ -44,6 +44,11 @@ exports.inputEmailMessage = () => {
 
 exports.emailExist = () => {
   let message = `אוי יש לנו בעיה ${emojis.warning}${twoLine}משתמש אחר כבר נרשם עם המייל הזה.${twoLine}מה אפשר לעשות?${oneLine}1.שליחה של מייל אחר${oneLine}2.עדכון של המייל הזה לחשבון הטלגרם הזה שאנחנו מתכתבים בו עכשיו`;
+  
+  return message;
+};
+exports.emailNotValid = (emailSent) => {
+  let message = `אוי יש לנו בעיה ${emojis.warning}${twoLine}האימייל ששלחת לא תקין! ${twoLine}הכתובת מייל ששלחת לנו היא: ${emailSent}${twoLine}בבקשה בדקו שהכתובת נכונה ושלחו שוב${emojis.email}`;
 
   return message;
 };

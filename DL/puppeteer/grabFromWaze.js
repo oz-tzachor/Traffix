@@ -61,7 +61,9 @@ const grabData = async (browser, type = "waze", route = undefined) => {
       let est = allUl.slice(startCutEst, endCutEst);
       // console.log("est from waze", est);
       console.log("time from waze", time, "\n", "est from waze", est, "\n");
-      let dateOfUpdate = getDate().toLocaleString();
+      const locale = "he-IL";
+      const dateOptions = { timeZone: "Asia/Jerusalem" };
+      let dateOfUpdate = getDate().toLocaleString(locale, dateOptions);
       let dayOfTheWeek = new Date(dateOfUpdate).getDay();
       //Saving
       let routeId = route._id;
@@ -74,7 +76,7 @@ const grabData = async (browser, type = "waze", route = undefined) => {
           route: routeId,
           source: "waze",
         };
-        console.log("result", result);
+        // console.log("result", result);
         let lastUpdateForRoute = await trafficUpdateLogic.getTrafficUpdate(
           { wazeUrl: { $ne: null } },
           { sort: { dateOfUpdate: -1 } }
@@ -85,8 +87,8 @@ const grabData = async (browser, type = "waze", route = undefined) => {
           await trafficUpdateLogic.newTrafficUpdate(result);
         }
         //  getTrafficRouteAvg({ zip: 144 });
-      }else{
-        console.log('not all the fields exist');
+      } else {
+        console.log("not all the fields exist");
       }
       await page.close();
       // await browser.close();
@@ -175,7 +177,7 @@ let grabFromWaze = async () => {
     });
     let stop = () => {
       indexInAddress = addressLength + 2;
-      console.log('closing browser!');
+      console.log("closing browser!");
       browser.close();
     };
     let callBack = () => {

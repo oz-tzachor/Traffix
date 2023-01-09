@@ -8,10 +8,11 @@ POST http://{{url}}/api/traffRoute/new
 content-type: application/json
 
 {
-      "to": "כיכר אדם",
-    "from": "מחסום חיזמא",
-    "wazeUrl":"https://www.waze.com/he/live-map/directions/%D7%9B%D7%99%D7%9B%D7%A8-%D7%90%D7%93%D7%9D-60437?to=place.w.23134527.231083121.298546&from=place.w.23134526.231017583.442892"}
-
+    "from": "צומת שילת",
+    "to": "צומת גבעת זאב (מחנה עופר)",
+    "type": "waze",
+    "wazeUrl":"https://www.waze.com/he/live-map/directions/%D7%91%D7%99%D7%AA-%D7%A1%D7%95%D7%94%D7%A8-%D7%A2%D7%95%D7%A4%D7%A8?to=place.ChIJ08LMywXVAhUR-FkownNAB3c&from=place.w.22937919.229510263.21013"
+}
 ####
 
 //Get avg
@@ -19,13 +20,14 @@ POST http://{{url}}/api/traffRoute/avg
 content-type: application/json
 
 {
-    "zip":144,
-    "dateOfUpdate":{"$gte":
-    "2023-01-02","$lt":"2023-01-07T23:59:00.000Z"
-    }
+    "route":"63baa83c06b795747ea8f262"
+
 }
 
 ####
+    # "createdAt":{"$gte":
+    # "2023-01-01T00:00:00+02:00","$lt":"2023-01-09T23:59:59+02:00"
+    # }
 //Update route
 POST http://{{url}}/api/traffRoute/update/144
 content-type: application/json

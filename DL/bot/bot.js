@@ -1,8 +1,10 @@
 const TelegramBot = require("node-telegram-bot-api");
 const fs = require("fs");
 const nodemailer = require("nodemailer");
-const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
+const { newMessage } = require("./messages");
+const TELEGRAM_TOKEN_DEV = process.env.TELEGRAM_TOKEN_DEV;
 let bot;
+let devBot;
 let emojis = {
   confirm: `\u{2705}`,
   smiley: `\u{1F604}`,
@@ -47,50 +49,63 @@ let emojis = {
 };
 
 ////////
-let sendMessage = (chatId, text='Initial message') => {
+let sendMessage = (
+  chatId,
+  text = "Initial message",
+  replyOptions = {
+    reply_markup: {
+      remove_keyboard: true,
+    },
+  }
+) => {
   try {
-    bot.sendMessage(chatId, text);
+    bot.sendMessage(chatId, text, replyOptions);
   } catch (e) {
     console.log("message error", e);
   }
 };
 let sendImage = (chatId, image) => {
   try {
-    if(image){
+    if (image) {
       bot.sendPhoto(chatId, image);
-      // if (fs.existsSync(image)) {
-      //   console.log("file exists");
-      //   fs.unlink(image, (err) => {
-      //     if (err) {
-      //       console.log(err); 
-      
-      //       // (code: err.code, message: err.message };
-      //     }
-      //     console.log("Delete File successfully.");
-      //   });
-      // } else {
-      //   console.log("file not found!");
-      // }
     }
   } catch (e) {
     console.log("message error", e);
   }
 };
+
 let dealWithMessage = async () => {
   try {
     bot = new TelegramBot(TELEGRAM_TOKEN, { polling: true });
     bot.on("message", async (msg) => {
       try {
-        const expense = {
-          budget: "62cbe8d3ac72b9da1311b7d2",
-          description: "Telegram",
-          amount: 1,
-        };
         let chatId = msg.chat.id;
         let text = msg.text;
         let messageToSent = ``;
         console.log("new message", text, chatId);
-        sendMessage(chatId, "received");
+        //
+        // var keyboards = {
+        //   main_menu: {
+        //     reply_markup: {
+        //       keyboard: [
+        //         ["Sne my location"],
+        //         ["Sne my location"],
+        //         // [{ text: "Cards" }, { text: "Progress" }, { text: "complain" }],
+        //         // [{ text: "Warning" }, { text: "Help" }],
+        //       ],
+        //     },
+        //   },
+        // };
+        // if (text.toLowerCase() === "warning") {
+        //   sendMessage(chatId, "Done");
+        // } else {
+        //   sendMessage(chatId, "Main menu", {
+        //     reply_markup: keyboards.main_menu.reply_markup,
+        //   });
+        // }
+
+        newMessage(chatId, text, sendMessage);
+        // sendMessage(chatId, "received");
         // let finalPath = await createOne(text);
         // mail().catch(console.error);
         // mail(text).then(bot.sendMessage(chatId, "sent"));
@@ -101,11 +116,35 @@ let dealWithMessage = async () => {
         let endOfArticle =
           "            -----------------------------------------------------------";
       } catch (e) {
-        console.log("e", e);
+        // console.log("e", e);
       }
     });
   } catch (e) {
     console.log("e", e);
   }
 };
-module.exports = { dealWithMessage, sendMessage,sendImage };
+
+//DEV BOT
+let activateDevBot = () => {
+  try {
+    devBot = new TelegramBot(TELEGRAM_TOKEN_DEV, { polling: true });
+  } catch (e) {
+    console.log("error in dev bot", e);
+  }
+};
+let sendMessageDev = (text = "initial") => {
+  let chatIdDev = 160151970;
+  try {
+    devBot.sendMessage(chatIdDev, text);
+    dev;
+  } catch (e) {
+    console.log("eror when sending message dev bot", e);
+  }
+};
+module.exports = {
+  dealWithMessage,
+  sendMessage,
+  sendImage,
+  activateDevBot,
+  sendMessageDev,
+};

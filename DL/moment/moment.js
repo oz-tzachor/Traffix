@@ -9,29 +9,41 @@ const validatePassExpiry = (time) => {
   return expired;
 };
 
-const getDate = ()=>{
-  return moment()
-}
+let checkNewerUpdate = (dataItemDate, lastUpdateSaved) => {
+  if (!lastUpdateSaved) {
+    return true;
+  }
+  dataItemDate = moment(dataItemDate);
+  lastUpdateSaved = moment(lastUpdateSaved);
+  let after = dataItemDate.isAfter(lastUpdateSaved);
+  return after;
+};
+
+const getDate = () => {
+  return moment();
+};
 
 const getDatesForDailyAvg = () => {
   try {
     // midnight
     let todayMidnight = moment();
-    todayMidnight.set({ hour: 20, minute: 0, second: 0, millisecond: 0 });
+    todayMidnight.set({ hour: 00, minute: 0, second: 0, millisecond: 0 });
     todayMidnight.toISOString();
     todayMidnight.format();
     //
     // before next midnight
     let tomrrowAlmostMidnight = moment();
     tomrrowAlmostMidnight.set({
-      hour: 22,
+      hour: 23,
       minute: 59,
       second: 59,
       millisecond: 0,
     });
     tomrrowAlmostMidnight.toISOString();
     tomrrowAlmostMidnight.format();
-    return { $gte: todayMidnight, $lt: tomrrowAlmostMidnight };
+    let res = { $gte: todayMidnight, $lt: tomrrowAlmostMidnight };
+    console.log("res", res);
+    return res;
   } catch (e) {
     console.log("e", e);
     return "error";
@@ -41,6 +53,7 @@ const momentFunctions = {
   resetPassExpiry,
   validatePassExpiry,
   getDatesForDailyAvg,
-  getDate
+  getDate,
+  checkNewerUpdate,
 };
 module.exports = momentFunctions;

@@ -5,6 +5,7 @@ const { sendMessage } = require("../bot/bot");
 const { getAllTrafUpdates } = require("../../BL/trafficUpdateLogic");
 const { getDatesForDailyAvg } = require("../moment/moment");
 const { grabFromWaze } = require("../puppeteer/grabFromWaze");
+const { manageRouteAvg } = require("../../BL/trafficRouteLogic");
 //Flag for scrap
 let scrapTrafficData = true;
 let grabPeriod = 7;
@@ -17,7 +18,7 @@ let expressionsPerTime = {
   H_4_AM_TO_5_AM: `*/${grabPeriod} 4-5/1 * * *`,
 };
 
-const defineGrabbingCron = (expression, callback) => {
+const defineNewCron = (expression, callback) => {
   cron.schedule(
     expression,
     function () {
@@ -31,15 +32,17 @@ const defineGrabbingCron = (expression, callback) => {
   return;
 };
 let createAllGrabCrons = () => {
-  //
-  // grabFromWaze()
-  // Object.keys(expressionsPerTime).forEach((key) => {
-  //   defineGrabbingCron(expressionsPerTime[key],grabFromWaze);
-  // });
-  // // // waze grabbing
-  let wazeExpression =  "*/7 * * * *"
-  defineGrabbingCron(wazeExpression,grabFromWaze);
+  //waze Expression
+  let wazeExpression = "*/7 * * * *";
+  defineNewCron(wazeExpression, grabFromWaze);
+  // calc avg expression
+  let caclAvgExpressoin = "59 23 * * *";
+  defineNewCron(caclAvgExpressoin, manageRouteAvg);
 
+  // grabFromWaze()//development
+};
+let createAvgCrons = async () => {
+  let calcDailyAvg = async () => {};
 };
 const crons = { createAllGrabCrons };
 module.exports = crons;

@@ -14,9 +14,7 @@ router.post("/new", async (req, res) => {
 });
 //
 router.post("/avg", async (req, res) => {
-  const avg = await traffRouteLogic.getTrafficRouteAvg({
-    zip: req.body.zip,
-  });
+  const avg = await traffRouteLogic.getTrafficRouteAvgGeneral(req.body);
   // sendImage(chatId, newGraph);
   res.send(avg);
 });

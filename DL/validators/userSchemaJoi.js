@@ -1,4 +1,5 @@
 const Joi = require("joi");
+
 const userSchemaJoi = Joi.object({
   firstName: Joi.string().alphanum().min(2).max(20).required(),
   lastName: Joi.string().alphanum().min(2).max(20).required(),
@@ -7,6 +8,11 @@ const userSchemaJoi = Joi.object({
     minDomainSegments: 2,
   }),
 });
+const emailSchema  = Joi.object({
+  email: Joi.string().email({
+    minDomainSegments: 2,
+  }),
+})
 const validateNewUser = (user) => {
   let valid = userSchemaJoi.validate(user);
   if (valid.error) {
@@ -15,4 +21,12 @@ const validateNewUser = (user) => {
   }
   return { valid: true, message: "Valid" };
 };
-module.exports = validateNewUser;
+const validateEmail = (email) => {
+  let valid = emailSchema.validate({email});
+  if (valid.error) {
+    let errorMessage = valid.error.details[0].message;
+    return { valid: false, message: errorMessage };
+  }
+  return { valid: true, message: "Valid" };
+};
+module.exports = {validateNewUser,validateEmail};
