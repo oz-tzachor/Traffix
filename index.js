@@ -15,7 +15,7 @@ const router = require("./Routers");
 const cors = require("cors");
 const { createAllGrabCrons } = require("./DL/cron/cron");
 const { grabFromWaze } = require("./DL/puppeteer/grabFromWaze");
-const { manageRouteAvg } = require("./BL/trafficRouteLogic");
+const { manageRouteAvg, analyzeTheData } = require("./BL/trafficRouteLogic");
 // const io = new Server(4001, {
 //   cors: "*",
 // });
@@ -31,12 +31,16 @@ require("./DL/db")
       console.log(`server is running => ${PORT || 5000}`);
       if (production && prodGrab) {
         createAllGrabCrons();
-        activateDevBot()
+        // activateDevBot();
       }
       if (production && prodBot) {
         dealWithMessage();
       }
       if (!production) {
+        // manageRouteAvg();
+        // activateDevBot();
+        // dealWithMessage();
+        // analyzeTheData();
         // createAllGrabCrons();
         // grabFromWaze()
         // dealWithMessage()
@@ -47,4 +51,4 @@ require("./DL/db")
   )
   .catch((e) => console.log("error", e));
 
-module.exports = { app };
+module.exports = { app, production };
