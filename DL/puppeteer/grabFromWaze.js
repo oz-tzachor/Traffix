@@ -30,9 +30,9 @@ const grabData = async (browser, type = "waze", route = undefined) => {
         foundedElement = multipleRoutesSelector;
       } catch (e) {
         //failed to find the first
-        console.log("failed to find the multiple route");
+        console.log("failed to find multiple route");
         try {
-          console.log("Trying find the only one route");
+          console.log("Trying one route");
           await page.waitForSelector(oneRouteSelector, {
             timeout: 6000,
             visible: true,
@@ -60,7 +60,14 @@ const grabData = async (browser, type = "waze", route = undefined) => {
       let startCutEst = endCutEst - 8;
       let est = allUl.slice(startCutEst, endCutEst);
       // console.log("est from waze", est);
-      console.log("time from waze", time, "\n", "est from waze", est, "\n");
+      console.log(
+        "\n\n\ntime from waze",
+        time,
+        "\n",
+        "est from waze",
+        est,
+        "\n"
+      );
       const locale = "he-IL";
       const dateOptions = { timeZone: "Asia/Jerusalem" };
       let dateOfUpdate = getDate().toLocaleString(locale, dateOptions);
@@ -82,9 +89,18 @@ const grabData = async (browser, type = "waze", route = undefined) => {
           { sort: { dateOfUpdate: -1 } }
         );
         if (lastUpdateForRoute.dateOfUpdate === dateOfUpdate) {
-          console.log("The same data grabbed- avoiding this data");
+          // console.log("The same data grabbed- avoiding this data");
         } else {
           await trafficUpdateLogic.newTrafficUpdate(result);
+
+          console.log(
+            "\n\n\nTitle:",
+            title,
+            "Time from waze",
+            time,
+            "\n\nDate:",
+            dateOfUpdate
+          );
         }
         //  getTrafficRouteAvg({ zip: 144 });
       } else {
