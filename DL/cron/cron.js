@@ -32,19 +32,26 @@ const defineNewCron = (expression, callback) => {
   return;
 };
 let createAllGrabCrons = () => {
+  //define waze crons
+  createGrabCrons();
+  //Define avg crons
+  calcDailyAvg();
+  // grabFromWaze()//development
+};
+
+//
+let createGrabCrons = async () => {
   //waze Expression
   let wazeExpression = "*/7 * * * *";
   console.log("waze grab cron defined:", wazeExpression);
   defineNewCron(wazeExpression, grabFromWaze);
+};
+//
+let calcDailyAvg = async () => {
   // calc avg expression
   let caclAvgExpressoin = "59 23 * * *";
   console.log("avg cron defined:", caclAvgExpressoin);
   defineNewCron(caclAvgExpressoin, manageRouteAvg);
-
-  // grabFromWaze()//development
-};
-let createAvgCrons = async () => {
-  let calcDailyAvg = async () => {};
 };
 const crons = { createAllGrabCrons };
 module.exports = crons;

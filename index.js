@@ -1,7 +1,7 @@
 const express = require("express");
 const app = express();
 //production flags
-let production = true; //means not in localhost
+let production = false; //means not in localhost
 let prodGrab = true; //means that version of the grabber - to avoid conflict when grab runing online and localhost trying to grab also
 let prodBot = false; //means that version of the grabber - to avoid conflict when grab runing online and localhost trying to grab also
 const PORT = process.env.PORT || 3001;
@@ -15,7 +15,7 @@ const router = require("./Routers");
 const cors = require("cors");
 const { createAllGrabCrons } = require("./DL/cron/cron");
 const { grabFromWaze } = require("./DL/puppeteer/grabFromWaze");
-const { manageRouteAvg, analyzeTheData, getTrafficRouteAvgGeneral } = require("./BL/trafficRouteLogic");
+const { manageRouteAvg, analyzeTheData, getTrafficRouteAvgGeneral, getTrafficRouteAvgNew } = require("./BL/trafficRouteLogic");
 // const io = new Server(4001, {
 //   cors: "*",
 // });
@@ -38,10 +38,11 @@ require("./DL/db")
       }
       if (!production) {
         // manageRouteAvg();
+        // getTrafficRouteAvgNew({route:'63baa97f38081445ab4f0ba5'})
         // getTrafficRouteAvgGeneral({route:'63baa97f38081445ab4f0ba5'})
         // activateDevBot();
         // dealWithMessage();
-        // analyzeTheData();
+        analyzeTheData();
         // createAllGrabCrons();
         // grabFromWaze()
         // dealWithMessage()
