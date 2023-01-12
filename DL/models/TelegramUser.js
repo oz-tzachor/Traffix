@@ -34,7 +34,11 @@ const TelegramUser = new mongoose.Schema(
       required: true,
       default: "login_initial",
     },
-    // expenseDetails: {
+    lastStateUpdate: {
+      type: Date,
+      required: true,
+    },
+    // storeDetails: {
     //   amount: { type: Number, required: true },
     //   description: { type: String },
     //   budgetId: {
@@ -48,6 +52,11 @@ const TelegramUser = new mongoose.Schema(
     //   },
     // },
     authenticated: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
+    isAdmin: {
       type: Boolean,
       required: true,
       default: false,

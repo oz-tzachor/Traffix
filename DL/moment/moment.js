@@ -19,8 +19,12 @@ let checkNewerUpdate = (dataItemDate, lastUpdateSaved) => {
   return after;
 };
 
-const getDate = () => {
-  return moment();
+const getDate = (date) => {
+  if(date){
+
+    return moment(new Date(date));
+  }
+  return moment()
 };
 
 const getDatesForDailyAvg = () => {

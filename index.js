@@ -13,9 +13,17 @@ if (!production) {
 const { dealWithMessage, activateDevBot } = require("./DL/bot/bot");
 const router = require("./Routers");
 const cors = require("cors");
-const { createAllGrabCrons } = require("./DL/cron/cron");
+const { createAllGrabCrons, deleteGraphPhotos } = require("./DL/cron/cron");
 const { grabFromWaze } = require("./DL/puppeteer/grabFromWaze");
-const { manageRouteAvg, analyzeTheData, getTrafficRouteAvgGeneral, getTrafficRouteAvgNew } = require("./BL/trafficRouteLogic");
+const {
+  manageRouteAvg,
+  analyzeTheData,
+  getTrafficRouteAvgGeneral,
+  getTrafficRouteAvgNew,
+  getTrafficRoute,
+} = require("./BL/trafficRouteLogic");
+const { createDataChart } = require("./DL/chart/chart");
+const { predictFromWaze } = require("./DL/puppeteer/grabFromWazePrediction");
 // const io = new Server(4001, {
 //   cors: "*",
 // });
@@ -27,7 +35,7 @@ app.use("/api", router);
 require("./DL/db")
   .connect()
   .then(() =>
-    app.listen(PORT || 5000, () => {
+    app.listen(PORT || 5000, async () => {
       console.log(`server is running => ${PORT || 5000}`);
       if (production && prodGrab) {
         createAllGrabCrons();
@@ -40,12 +48,19 @@ require("./DL/db")
         // manageRouteAvg();
         // getTrafficRouteAvgNew({route:'63baa97f38081445ab4f0ba5'})
         // getTrafficRouteAvgGeneral({route:'63baa97f38081445ab4f0ba5'})
-        // activateDevBot();
-        // dealWithMessage();
-        analyzeTheData();
+        activateDevBot();
+        dealWithMessage();
+        // deleteGraphPhotos()
+        // analyzeTheData();
         // createAllGrabCrons();
         // grabFromWaze()
-        // dealWithMessage()
+        let data = await getTrafficRoute({ _id: "63bb0ea55944eebd34bd1357" });
+        predictFromWaze(true,data)
+        // console.log(
+          //   "path",
+          
+        //   await createDataChart(data)
+        // );
       }
       // loadMainSocket(io),
       // dealWithMessage()

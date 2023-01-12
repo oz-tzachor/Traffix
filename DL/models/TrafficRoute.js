@@ -18,6 +18,7 @@ const TrafficRoute = new mongoose.Schema(
       uniqe:true
     },
     avgByDays: {},
+    predictByDays: {},
     lastAvgUpdate: { type: Date },
     type: { type: String, enum: ["waze", "pkk"], default: "waze" },
     isTrafficJam: { type: Boolean, default: false },

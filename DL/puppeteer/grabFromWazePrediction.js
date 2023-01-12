@@ -2,30 +2,57 @@ const puppeteer = require("puppeteer");
 const trafficRouteLogic = require("../../BL/trafficRouteLogic");
 const trafficUpdateLogic = require("../../BL/trafficUpdateLogic");
 const { getDate } = require("../moment/moment");
+
 const grabData = async (
   browser,
   type = "waze",
   route = undefined,
-  oneRoute = false
+  oneRoute = false,
+  timeOfPrediction
 ) => {
   let address;
   try {
-    if (type === "waze") {
-      address = route.wazeUrl;
-    } else if (type === "pkk") {
-      address = `https://www.pkk.bycomputers.com/index.php?zipcode=${route.zip}`;
-    }
-    //Initial Navigation
+    let mainDate = new Date();
+    let timeInMin = new Date().getMinutes();
+
+    let startTime = Date.now();
+    // for (let index = 0; index < array.length; index++) {
+    //   const element = array[index];
+    // }
+    let urlWithTime = `https://www.waze.com/he/live-map/directions/%D7%90%D7%A8%D7%99%D7%90%D7%9C?to=place.ChIJ6_6XBwsnHRURrbo12csDrug&from=place.ChIJ18ktYCvUHBURpr2YR8qxBaQ&time=${timeOfPrediction}&reverse=yes`;
+    address =
+      "https://www.waze.com/he/live-map/directions/%D7%90%D7%A8%D7%99%D7%90%D7%9C?to=place.ChIJ6_6XBwsnHRURrbo12csDrug&from=place.ChIJ18ktYCvUHBURpr2YR8qxBaQ&time=1673560800000&reverse=yes";
+      //Initial Navigation
     const page = await browser.newPage();
-    await page.goto(address, { waitUntil: "networkidle0" });
+    await page.goto(urlWithTime, { waitUntil: "networkidle0" });
     if (type === "waze") {
       let title = `${route.from} - ${route.to}`;
-      console.log("started in waze:", title);
+      console.log("predict in waze:", title);
       let oneRouteSelector =
         "#map > div.wm-cards.is-destination.with-routing.with-routes > div.wm-card.is-routing > div > div.wm-routing__scrollable > div.wm-routes.false";
       let multipleRoutesSelector =
         "#map > div.wm-cards.is-destination.with-routing.with-routes > div.wm-card.is-routing > div > div.wm-routing__scrollable > div.wm-routes.multiple-routes";
-      let foundedElement = null;
+        let dropDownSelector = `#map > div.wm-cards.is-destination.with-routing.with-routes > div.wm-card.is-routing > div > div.wm-routing__scrollable > div.wm-routing-schedule.wm-routing__reducer > div.wm-routing-schedule__datetime > div:nth-child(2)`
+         let foundedElement = null;
+
+
+      try{
+        await page.waitForSelector(dropDownSelector, {
+          timeout: 4000,
+          visible: true,
+        }); 
+        let dropDownElement  = await page.$eval(dropDownSelector, (element) => {
+          return element.innerHTML;
+        });
+        console.log('drop',dropDownElement);
+return;
+
+
+
+      }catch(e){
+        console.log('cant find dropdown',e);
+
+      }
       try {
         await page.waitForSelector(multipleRoutesSelector, {
           timeout: 4000,
@@ -100,9 +127,8 @@ const grabData = async (
           // console.log("The same data grabbed- avoiding this data");
         } else {
           await trafficUpdateLogic.newTrafficUpdate(result);
-
           console.log(
-            "\n\n\nTitle:",
+            "\nTitle:",
             title,
             "Time from waze",
             time,
@@ -119,57 +145,6 @@ const grabData = async (
       }
       await page.close();
       // await browser.close();
-    } else if (type === "pkk") {
-      ////////////////////////////////////////////////////////////////////////////////////
-      console.log("started in pkk:", address);
-
-      let mainDataSelector =
-        "body > div > div:nth-child(2) > div:nth-child(1) > div:nth-child(12) > div";
-      // let mainDataSelector =
-      //   "body > div > div:nth-child(2) > div:nth-child(1) > div:nth-child(13) > div";
-      let timeSelector = mainDataSelector + " > b:nth-child(3)";
-
-      //pkk logic
-      const page = await browser.newPage();
-      await page.goto(address, { waitUntil: "networkidle0" });
-      //
-      //Start scrap
-      await page.waitForSelector(mainDataSelector, { timeout: 4000 });
-      const ele = await page.$(mainDataSelector);
-
-      let dataEl = await page.$eval(mainDataSelector, (element) => {
-        return element.innerHTML;
-      });
-      let time = await page.$eval(timeSelector, (ele) => {
-        return ele.innerHTML;
-      });
-      dataEl = dataEl.toString();
-      let startTitle = dataEl.indexOf(">") + 1;
-      let endTtile = dataEl.indexOf("</");
-      let title = dataEl.substring(startTitle, endTtile);
-      //Date
-      let startDate = dataEl.indexOf("2023");
-      let end = dataEl.length;
-      let dateOfUpdate = dataEl.substring(startDate, end);
-      let dayOfTheWeek = new Date(dateOfUpdate).getDay();
-      let type = "pkk";
-      //Saving
-      if ((title && dateOfUpdate && time && zip && dayOfTheWeek, type)) {
-        let result = { title, dateOfUpdate, time, zip, dayOfTheWeek, type };
-        let lastUpdateForRoute = await trafLogic.getTrafficUpdate(
-          { zip },
-          { sort: { dateOfUpdate: -1 } }
-        );
-        if (lastUpdateForRoute.dateOfUpdate === dateOfUpdate) {
-          console.log("The same data grabbed- avoiding this data");
-        } else {
-          await trafLogic.newTrafficUpdate(result);
-        }
-        //  getTrafficRouteAvg({ zip: 144 });
-      }
-
-      await page.close();
-      //
     }
   } catch (e) {
     // await browser.close();
@@ -189,7 +164,7 @@ let runFunc = (browser, type, route, callback, stop) => {
     });
 };
 
-let grabFromWaze = async (oneRoute = false, oneRouteData = undefined) => {
+let predictFromWaze = async (oneRoute = false, oneRouteData = undefined) => {
   //mian function
   try {
     let browser = await puppeteer.launch({
@@ -197,12 +172,14 @@ let grabFromWaze = async (oneRoute = false, oneRouteData = undefined) => {
       args: ["--no-sandbox"],
     });
     if (oneRoute) {
+      //one Route prediction
       //request for one route
-      let res = await grabData(browser, "waze", oneRouteData,true);
+      let res = await grabData(browser, "waze", oneRouteData, true);
       return res;
     }
     let routes = await trafficRouteLogic.getTrafficRoutes({
       isActive: true,
+      _id: "63bb0ea55944eebd34bd1357",
     });
     let indexInAddress = 0;
     let addressLength = routes.length;
@@ -220,11 +197,6 @@ let grabFromWaze = async (oneRoute = false, oneRouteData = undefined) => {
           routes[indexInAddress].type == null ||
           !routes[indexInAddress].type
         ) {
-          if (routes[indexInAddress].zip) {
-            type = "pkk";
-          } else {
-            type = "waze";
-          }
         } else {
           type = routes[indexInAddress].type;
         }
@@ -237,18 +209,13 @@ let grabFromWaze = async (oneRoute = false, oneRouteData = undefined) => {
     };
     let type;
     if (routes[indexInAddress].type == null || !routes[indexInAddress].type) {
-      if (routes[indexInAddress].zip) {
-        type = "pkk";
-      } else {
-        type = "waze";
-      }
     } else {
       type = routes[indexInAddress].type;
     }
-    runFunc(browser, type, routes[indexInAddress], callBack, stop);
+    runFunc(browser, (type = "waze"), routes[indexInAddress], callBack, stop);
   } catch (e) {
     console.log("e", e);
   }
 };
-module.exports = { grabFromWaze };
+module.exports = { predictFromWaze };
 // grabData();

@@ -3,10 +3,9 @@ const TrafficRoute = require("../models/TrafficRoute");
 async function create(data) {
   return await TrafficRoute.create(data);
 }
-async function read(filter) {
+async function read(filter,selectExpression = null) {
   console.log('filter',filter);
-
-  return await TrafficRoute.find(filter);
+  return await TrafficRoute.find(filter).select(selectExpression);;
 }
 async function readOne(filter, options) {
   // { sort: { createdAt: 1 } }

@@ -1,11 +1,8 @@
 const cron = require("node-cron");
-const { startIt } = require("../puppeteer/grabFromPkk");
-let chatId = 160151970;
-const { sendMessage } = require("../bot/bot");
-const { getAllTrafUpdates } = require("../../BL/trafficUpdateLogic");
-const { getDatesForDailyAvg } = require("../moment/moment");
 const { grabFromWaze } = require("../puppeteer/grabFromWaze");
 const { manageRouteAvg } = require("../../BL/trafficRouteLogic");
+const { checkForDeletingMessageId } = require("../../BL/messageIdLogic");
+const {deleteMessage} =require('../bot/bot')
 //Flag for scrap
 let scrapTrafficData = true;
 let grabPeriod = 7;
@@ -18,11 +15,11 @@ let expressionsPerTime = {
   H_4_AM_TO_5_AM: `*/${grabPeriod} 4-5/1 * * *`,
 };
 
-const defineNewCron = (expression, callback) => {
+const defineNewCron = (expression, callback,callbackDelete = null) => {
   cron.schedule(
     expression,
     function () {
-      callback();
+      callback(callbackDelete);
     },
     {
       scheduled: true,
@@ -37,6 +34,8 @@ let createAllGrabCrons = () => {
   //Define avg crons
   calcDailyAvg();
   // grabFromWaze()//development
+  //delete graphs
+  deleteGraphPhotos()
 };
 
 //
@@ -53,5 +52,11 @@ let calcDailyAvg = async () => {
   console.log("avg cron defined:", caclAvgExpressoin);
   defineNewCron(caclAvgExpressoin, manageRouteAvg);
 };
-const crons = { createAllGrabCrons };
+let deleteGraphPhotos = async () => {
+  // calc avg expression
+  let deletePhotoExpreession = " */10 * * * *";
+  console.log("delete cron defined:", deletePhotoExpreession);
+  defineNewCron(deletePhotoExpreession, checkForDeletingMessageId,deleteMessage);
+};
+const crons = { createAllGrabCrons,deleteGraphPhotos };
 module.exports = crons;

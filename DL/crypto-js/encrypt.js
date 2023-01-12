@@ -19,5 +19,20 @@ const decrypt = (value) => {
   );
   return decrypted;
 };
-const encryption = { encrypt, decrypt };
+
+let encryptChatId = (chatId) => {
+  let encrypted = CryptoJS.AES.encrypt(
+    chatId,
+    process.env.SECRET_JS
+  ).toString();
+  return encrypted;
+};
+let decryptChatId = (chatId) => {
+  let encrypted = CryptoJS.AES.decrypt(
+    chatId,
+    process.env.SECRET_JS
+  ).toString();
+  return encrypted;
+};
+const encryption = { encrypt, decrypt, encryptChatId, decryptChatId };
 module.exports = encryption;

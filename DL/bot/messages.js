@@ -2,7 +2,7 @@ const telegramUserLogic = require("../../BL/telegramUserLogic");
 const trafficRouteLogic = require("../../BL/trafficRouteLogic");
 const trafficUpdateLogic = require("../../BL/trafficUpdateLogic");
 const { validateEmail } = require("../validators/userSchemaJoi");
-const { sendMessage } = require("./bot");
+const { calcQurater } = require("../common/commonFunctions");
 const {
   loginMessage,
   greetingMessage,
@@ -34,29 +34,59 @@ const {
   sendBotDetails,
   welcomeCollabrate,
   emailNotValid,
+  chooseRoute,
+  liveUpdate,
+  graphWillDelete,
 } = require("./messagesTemplates");
-let createKeyboaed = (arrayOfButtons) => {
-  console.log("arr", arrayOfButtons);
+const { grabFromWaze } = require("../puppeteer/grabFromWaze");
+const { createDataChart } = require("../chart/chart");
+const { createWatermark } = require("../jimp/jimp");
+const { newMessageId } = require("../../BL/messageIdLogic");
+const { emojis } = require("./emojis");
+const { manageRouteAvg } = require("../../BL/trafficRouteLogic");
+let keyboardsButtons = {
+  loginFlow: {
+    loginMessage: [["אני רוצה להתחבר!"]],
+  },
+  mainFlow: {
+    mainMessage: [
+      ["קבלת עדכון חי על מצב התנועה"],
+      ["קבלת נתונים לפי יום בנתיב מסוים"],
+    ],
+    chooseRoute: [],
+  },
+};
+let addBackToMainMenu = true;
+let backToMainMenuText = `חזרה לתפריט הראשי ${emojis.dashboard} ${emojis.restart}`;
+let createKeyboaed = (
+  arrayOfButtons = keyboardsButtons.mainFlow.mainMessage
+) => {
+  // console.log("arr", arrayOfButtons);
   return {
     reply_markup: {
-      keyboard: [arrayOfButtons],
+      keyboard: [...arrayOfButtons, addBackToMainMenu && [backToMainMenuText]],
     },
   };
 };
-let keyboardsButtons = {
-  loginFlow: {
-    loginMessage: ["אני רוצה להתחבר!"],
-  },
-};
+
+//
+// mainMessage:[
+//   'קבלת עדכון חי על מצב התנועה',
+
+//       ]
 ///
 let currentChatId;
 let currentMessage;
 let localSendMessage;
+let localSendImage;
+let localDeleteMessage;
 let currentUser;
-const newMessage = (chatId, message, sendFunc) => {
+const newMessage = (chatId, message, sendFunc, imageFunc, deleteFunc) => {
   currentChatId = chatId;
   currentMessage = message.toLowerCase();
   localSendMessage = sendFunc;
+  localSendImage = imageFunc;
+  localDeleteMessage = deleteFunc;
   checkUser();
 };
 const changeTelegramState = async (state) => {
@@ -66,46 +96,49 @@ const changeTelegramState = async (state) => {
   );
   return updateState;
 };
-const getTargets = async () => {
-  // let targets = await trafficRouteLogic.getAllTargets({
-  //   dashboard: currentUser.defaultDashboard,
-  // });
-  console.log(await targets[0]);
-  return targets;
-};
-const getLastActs = async (target) => {
-  // let incomes = await incomeLogic.getIncomes(target);
-  // let expenses = await expenseLogic.getExpenses(target);
-  for (
-    let index = 0;
-    index <
-    (incomes.length > expenses.length ? incomes.length : expenses.length);
-    index++
-  ) {
-    if (incomes[index]) {
-      incomes[index].type = "income";
-    }
-    if (expenses[index]) {
-      expenses[index].type = "expense";
-    }
-  }
-  let combinedArray = [...incomes, ...expenses];
-  combinedArray.sort((a, b) => {
-    return new Date(b.createdAt) - new Date(a.createdAt);
-  });
-  return combinedArray.reverse();
+let getRoutes = async (selectExpression = null) => {
+  let routes = await trafficRouteLogic.getTrafficRoutes(
+    { isActive: true },
+    selectExpression
+  );
+  return routes;
 };
 const checkUser = async () => {
   currentUser = await telegramUserLogic.getTelegramUser({
     chatId: currentChatId,
   });
+  if (currentMessage === "/start") {
+    localSendMessage(
+      currentChatId,
+      mainMessage(),
+      createKeyboaed(keyboardsButtons.mainFlow.mainMessage)
+    );
+    changeTelegramState("main_chooseAction");
+    return;
+  }
+  if (currentMessage === "calcavg") {
+    manageRouteAvg()
+    localSendMessage(currentChatId, "calc avg");
+    localSendMessage(
+      currentChatId,
+      mainMessage(),
+      createKeyboaed(keyboardsButtons.mainFlow.mainMessage)
+    );
+    changeTelegramState("main_chooseAction");
+    return;
+  }
   if (currentMessage.toLowerCase() === "deleteall") {
     // await trafficRouteLogic.deleteAllTargets();
     localSendMessage(currentChatId, "All deleted");
-    localSendMessage(currentChatId, mainMessage());
-    changeTelegramState("main_menu");
+    localSendMessage(
+      currentChatId,
+      mainMessage(),
+      createKeyboaed(keyboardsButtons.mainFlow.mainMessage)
+    );
+    changeTelegramState("main_chooseAction");
     return;
   }
+
   if (currentMessage.toLowerCase() === "reset") {
     changeTelegramState("login_initial");
     telegramUserLogic.updateUserDetails(
@@ -117,9 +150,16 @@ const checkUser = async () => {
     localSendMessage(currentChatId, "reset");
     return;
   }
-  if (currentMessage.toLowerCase() === "setup") {
-    localSendMessage(currentChatId, mainMessage());
-    changeTelegramState("main_menu");
+  if (
+    currentMessage === backToMainMenuText ||
+    currentMessage.toLowerCase() === "setup"
+  ) {
+    localSendMessage(
+      currentChatId,
+      mainMessage(),
+      createKeyboaed(keyboardsButtons.mainFlow.mainMessage)
+    );
+    changeTelegramState("main_chooseAction");
     return;
   }
   if (!currentUser || !currentUser?.authenticated) {
@@ -134,7 +174,7 @@ const checkUser = async () => {
       });
       return;
     } else {
-      if (!currentUser.authenticated) {
+      if (currentUser.authenticated) {
         loginFlow(currentUser.state);
       } else {
         mainFlow(currentUser.state);
@@ -176,7 +216,7 @@ let loginFlow = async (state) => {
       }
       let validEmail = validateEmail(currentMessage).valid;
       if (!validEmail) {
-       return  localSendMessage(currentChatId, emailNotValid(currentMessage));
+        return localSendMessage(currentChatId, emailNotValid(currentMessage));
       }
       user = await telegramUserLogic.updateUserDetails(
         { chatId: currentChatId },
@@ -184,10 +224,6 @@ let loginFlow = async (state) => {
           email: currentMessage,
         }
       );
-      // let updatedUser = await telegramUserLogic.updateUserDetails(
-      //   {chatId:currentChatId},
-      //   { defaultDashboard: newDashboard._id }
-      // );
       localSendMessage(currentChatId, signedUpSuuccessfully());
       changeTelegramState("main_menu");
       setTimeout(() => {
@@ -218,330 +254,181 @@ let loginFlow = async (state) => {
   }
 };
 
-let mainFlow = async (state) => {
-  // let res;
-  // let selectedTarget;
-  // if (currentMessage === "9" && state !== "main_menu") {
-  //   localSendMessage(currentChatId, mainMessage());
-  //   changeTelegramState("main_menu");
-  //   return;
-  // }
-  // switch (state) {
-  //   case "main_initial":
-  //     localSendMessage(currentChatId, mainMessage());
-  //     changeTelegramState("main_menu");
-  //     break;
-  //   case "main_menu":
-  //     switch (currentMessage) {
-  //       case "1":
-  //         res = await getTargets();
-  //         if (res.length > 0) {
-  //           localSendMessage(currentChatId, showAllTargets(res));
-  //           setTimeout(() => {
-  //             localSendMessage(currentChatId, mainMessage());
-  //             changeTelegramState("main_menu");
-  //           }, 2000);
-  //         } else {
-  //           localSendMessage(currentChatId, noTargetsYet());
-  //           setTimeout(() => {
-  //             localSendMessage(currentChatId, mainMessage());
-  //           }, 2000);
-  //           changeTelegramState("main_menu");
-  //         }
-  //         break;
-  //       case "2":
-  //         res = await getTargets();
-  //         localSendMessage(currentChatId, chooseTarget(res, "plus"));
-  //         changeTelegramState("main_chooseTargetIncome");
-  //         break;
-  //       case "3":
-  //         res = await getTargets();
-  //         localSendMessage(currentChatId, chooseTarget(res, "minus"));
-  //         changeTelegramState("main_chooseTargetExpense");
-  //         break;
-  //       case "4":
-  //         res = await getTargets();
-  //         localSendMessage(currentChatId, chooseTarget(res, "last"));
-  //         changeTelegramState("main_lastActivities");
-  //         break;
-  //       case "5":
-  //         localSendMessage(currentChatId, targetNameMessage());
-  //         changeTelegramState("main_targetName");
-  //         break;
-  //       case "6":
-  //         localSendMessage(currentChatId, mainMessage());
-  //         changeTelegramState("main_menu");
-  //         break;
-  //       case "7":
-  //         localSendMessage(currentChatId, sendCollabrateMail());
-  //         changeTelegramState("main_inputCollabrateEmail");
-  //         break;
-  //       case "8":
-  //         localSendMessage(currentChatId, mainMessage());
-  //         changeTelegramState("main_menu");
-  //         break;
-  //       default:
-  //         localSendMessage(currentChatId, followTheInstructions());
-  //         setTimeout(() => {
-  //           localSendMessage(currentChatId, mainMessage());
-  //         }, 1000);
-  //         break;
-  //     }
-  //     break;
-  //   //define new traget
-  //   case "main_targetName":
-  //     telegramUserLogic.saveTempData(currentChatId, "targetDetails", {
-  //       name: currentMessage,
-  //     });
-  //     localSendMessage(currentChatId, targetGoalMessage(currentMessage));
-  //     changeTelegramState("main_targetGoal");
-  //     break;
-  //   case "main_targetGoal":
-  //     if (!isNaN(currentMessage)) {
-  //       parseInt(currentMessage);
-  //       let newTarget = await targetLogic.createNewTarget({
-  //         name: currentUser.targetDetails.name,
-  //         goal: currentMessage,
-  //         createdBy: currentUser._id,
-  //         dashboard: currentUser.defaultDashboard,
-  //       });
-  //       if (newTarget) {
-  //         localSendMessage(
-  //           currentChatId,
-  //           newTargetCompleted(currentUser.targetDetails.name, currentMessage)
-  //         );
-  //         setTimeout(() => {
-  //           localSendMessage(currentChatId, mainMessage());
-  //         }, 2000);
-  //         changeTelegramState("main_menu");
-  //       }
-  //     } else {
-  //       localSendMessage(currentChatId, followTheInstructionsNumbers());
-  //     }
-  //     //
-  //     break;
-  //   //create new income
-  //   case "main_chooseTargetIncome":
-  //     if (!isNaN(currentMessage)) {
-  //       parseInt(currentMessage);
-  //       res = await getTargets();
-  //       console.log(currentMessage - 1, res.length - 1);
-  //       if (currentMessage - 1 > res.length - 1) {
-  //         localSendMessage(currentChatId, followTheInstructions());
-  //         setTimeout(() => {
-  //           localSendMessage(currentChatId, chooseTarget(res, "plus"));
-  //         }, 2000);
-  //         break;
-  //       }
-  //       telegramUserLogic.saveTempData(currentChatId, "incomeDetails", {
-  //         target: res[currentMessage - 1]._id,
-  //       });
-  //       localSendMessage(
-  //         currentChatId,
-  //         addIncomeAmount(res[currentMessage - 1].name)
-  //       );
-  //       changeTelegramState("main_chooseIncomeAmount");
-  //     } else {
-  //       localSendMessage(currentChatId, followTheInstructionsNumbers());
-  //     }
-  //     break;
-  //   case "main_chooseIncomeAmount":
-  //     res = await getTargets();
-  //     selectedTarget = res.find((elem) => {
-  //       return (
-  //         elem._id.toString() == currentUser.incomeDetails.target.toString()
-  //       );
-  //     });
-  //     if (!isNaN(currentMessage)) {
-  //       await telegramUserLogic.saveTempData(currentChatId, "incomeDetails", {
-  //         amount: currentMessage,
-  //       });
-  //       localSendMessage(
-  //         currentChatId,
-  //         addIncomeDescription(selectedTarget.name, currentMessage)
-  //       );
-  //       changeTelegramState("main_chooseIncomeDescription");
-  //     } else {
-  //       localSendMessage(currentChatId, followTheInstructionsNumbers());
-  //       setTimeout(() => {
-  //         localSendMessage(currentChatId, addIncomeAmount(selectedTarget.name));
-  //       }, 2000);
-  //     }
-  //     break;
-  //   case "main_chooseIncomeDescription":
-  //     res = await getTargets();
-  //     selectedTarget = res.find((elem) => {
-  //       return (
-  //         elem._id.toString() == currentUser.incomeDetails.target.toString()
-  //       );
-  //     });
-  //     await incomeLogic.createNewIncome({
-  //       amount: currentUser.incomeDetails.amount,
-  //       target: currentUser.incomeDetails.target,
-  //       createdBy: currentUser._id,
-  //       createdAt: new Date(),
-  //       dashboard: currentUser.defaultDashboard,
-  //       description: currentMessage === "לא" ? null : currentMessage,
-  //     });
-  //     console.log("selected", selectedTarget.amount, selectedTarget.goal);
-  //     localSendMessage(
-  //       currentChatId,
-  //       addIncomeCompleted(
-  //         selectedTarget.name,
-  //         currentUser.incomeDetails.amount,
-  //         ((selectedTarget.amount + currentUser.incomeDetails.amount) /
-  //           selectedTarget.goal) *
-  //           100
-  //       )
-  //     );
-  //     setTimeout(() => {
-  //       localSendMessage(currentChatId, mainMessage());
-  //       changeTelegramState("main_menu");
-  //     }, 2000);
-  //     break;
-  //   ///
-  //   //create new expense
-  //   case "main_chooseTargetExpense":
-  //     if (!isNaN(currentMessage)) {
-  //       parseInt(currentMessage);
-  //       res = await getTargets();
-  //       console.log(currentMessage - 1, res.length - 1);
-  //       if (currentMessage - 1 > res.length - 1) {
-  //         localSendMessage(currentChatId, followTheInstructions());
-  //         setTimeout(() => {
-  //           localSendMessage(currentChatId, chooseTarget(res, "minus"));
-  //         }, 2000);
-  //         break;
-  //       }
-  //       telegramUserLogic.saveTempData(currentChatId, "expenseDetails", {
-  //         target: res[currentMessage - 1]._id,
-  //       });
-  //       localSendMessage(
-  //         currentChatId,
-  //         addExpenseAmount(res[currentMessage - 1].name)
-  //       );
-  //       changeTelegramState("main_chooseExpenseAmount");
-  //     } else {
-  //       localSendMessage(currentChatId, followTheInstructionsNumbers());
-  //     }
-  //     break;
-  //   case "main_chooseExpenseAmount":
-  //     res = await getTargets();
-  //     selectedTarget = res.find((elem) => {
-  //       return (
-  //         elem._id.toString() == currentUser.expenseDetails.target.toString()
-  //       );
-  //     });
-  //     if (!isNaN(currentMessage)) {
-  //       await telegramUserLogic.saveTempData(currentChatId, "expenseDetails", {
-  //         amount: currentMessage,
-  //       });
-  //       localSendMessage(
-  //         currentChatId,
-  //         addExpenseDescription(selectedTarget.name, currentMessage)
-  //       );
-  //       changeTelegramState("main_chooseExpenseDescription");
-  //     } else {
-  //       localSendMessage(currentChatId, followTheInstructionsNumbers());
-  //       setTimeout(() => {
-  //         localSendMessage(
-  //           currentChatId,
-  //           addExpenseAmount(selectedTarget.name)
-  //         );
-  //       }, 2000);
-  //     }
-  //     break;
-  //   case "main_chooseExpenseDescription":
-  //     res = await getTargets();
-  //     selectedTarget = res.find((elem) => {
-  //       return (
-  //         elem._id.toString() == currentUser.expenseDetails.target.toString()
-  //       );
-  //     });
-  //     await expenseLogic.createNewExpense({
-  //       amount: currentUser.expenseDetails.amount,
-  //       target: currentUser.expenseDetails.target,
-  //       createdBy: currentUser._id,
-  //       createdAt: new Date(),
-  //       dashboard: currentUser.defaultDashboard,
-  //       description:
-  //         currentMessage === "לא"
-  //           ? "המשתמש בחר שלא לרשום תיאור למשיכה זו"
-  //           : currentMessage,
-  //     });
-  //     localSendMessage(
-  //       currentChatId,
-  //       addExpenseCompleted(
-  //         selectedTarget.name,
-  //         currentUser.expenseDetails.amount
-  //       )
-  //     );
-  //     setTimeout(() => {
-  //       localSendMessage(currentChatId, mainMessage());
-  //       changeTelegramState("main_menu");
-  //     }, 2000);
-  //     break;
-  //   ///
-  //   case "main_lastActivities":
-  //     if (!isNaN(currentMessage)) {
-  //       parseInt(currentMessage);
-  //       res = await getTargets();
-  //       console.log(currentMessage - 1, res.length - 1);
-  //       if (currentMessage - 1 > res.length - 1) {
-  //         localSendMessage(currentChatId, followTheInstructions());
-  //         setTimeout(() => {
-  //           localSendMessage(currentChatId, chooseTarget(res, "last"));
-  //         }, 2000);
-  //         break;
-  //       }
-  //       selectedTarget = res[currentMessage - 1]._id;
-  //       let lastActs = await getLastActs(selectedTarget);
-  //       localSendMessage(
-  //         currentChatId,
-  //         showLastActivities(
-  //           res[currentMessage - 1].name,
-  //           res[currentMessage - 1].goal,
-  //           lastActs
-  //         )
-  //       );
-  //       setTimeout(() => {
-  //         localSendMessage(currentChatId, mainMessage());
-  //         changeTelegramState("main_menu");
-  //       }, 3500);
-  //     } else {
-  //       localSendMessage(currentChatId, followTheInstructionsNumbers());
-  //       setTimeout(() => {
-  //         localSendMessage(currentChatId, chooseTarget(res, "last"));
-  //       }, 2000);
-  //     }
-  //     // localSendMessage(
-  //     //   currentChatId,
-  //     //   showLastActivities("test", array, currentUser.email)
-  //     // );
-  //     break;
-  //   //add collabrate
-  //   case "main_inputCollabrateEmail":
-  //     await telegramUserLogic.updateUserDetails(currentChatId, {
-  //       $push: { collabrates: currentMessage },
-  //     });
-  //     localSendMessage(
-  //       currentChatId,
-  //       collabrateAddedSuccessfully(currentMessage)
-  //     );
-  //     setTimeout(() => {
-  //       localSendMessage(currentChatId, sendBotDetails());
-  //     }, 1500);
-  //     setTimeout(() => {
-  //       localSendMessage(currentChatId, mainMessage());
-  //     }, 8000);
-  //     changeTelegramState("main_menu");
-  //     break;
-  //   //
-  //   case "general":
-  //     break;
-  //   default:
-  //     break;
-  // }
+let createRoutesKeyboard = (routes) => {
+  for (let index = 0; index < routes.length; index++) {
+    const route = routes[index];
+    keyboardsButtons.mainFlow.chooseRoute[index] = [
+      `${index + 1}:  ${route.from} - ${route.to}`,
+    ];``
+  }
 };
+//main variables
+let routes;
+let selectedRouteIndex;
+let selectedRouteData;
+//
+let mainFlow = async (state) => {
+  switch (state) {
+    case "main_menu":
+      //Initial message
+      localSendMessage(
+        currentChatId,
+        "בחר מה תרצה לעשות",
+        createKeyboaed(keyboardsButtons.mainFlow.mainMessage)
+      );
+      changeTelegramState("main_chooseAction");
+      break;
+    case "main_chooseAction":
+      //choose action from the main list
+      switch (currentMessage) {
+        //////////////////// DIFFRERENT SWITCH CASE/////////
+        case keyboardsButtons.mainFlow.mainMessage[0][0]:
+          routes = await getRoutes("from to");
+          //live route update
+          createRoutesKeyboard(routes);
+          localSendMessage(
+            currentChatId,
+            chooseRoute(),
+            createKeyboaed(keyboardsButtons.mainFlow.chooseRoute)
+          );
+          changeTelegramState("main_live_chooseRoute");
+          break;
+        case keyboardsButtons.mainFlow.mainMessage[1][0]:
+          routes = await getRoutes("from to");
+          createRoutesKeyboard(routes);
+          localSendMessage(
+            currentChatId,
+            chooseRoute(),
+            createKeyboaed(keyboardsButtons.mainFlow.chooseRoute)
+          );
+          changeTelegramState("main_avg_chooseRoute");
+          break;
 
-module.exports = { newMessage, checkUser, localSendMessage };
+        default:
+          break;
+      }
+      break;
+
+    /////////////////////Continue the main switch case
+    case "main_live_chooseRoute":
+      //Data by day
+      routes = await getRoutes("from to");
+      selectedRouteIndex = Number(currentMessage.slice(0, 1)) - 1;
+      if (isNaN(selectedRouteIndex)) {
+        // handle wrong input
+        break;
+      }
+      let startGettingFromDb = Date.now();
+      selectedRouteData = await trafficRouteLogic.getTrafficRoute({
+        _id: routes[selectedRouteIndex]._id,
+      });
+      console.log(
+        "done with DB",
+        (Date.now() - startGettingFromDb) / 1000,
+        " seconds"
+      );
+      let startGettingFromWaze = Date.now();
+
+      let exactData = await grabFromWaze(true, selectedRouteData);
+      if (!exactData) {
+        //Failed to take data now
+        localSendMessage(
+          currentChatId,
+          "לצערנו קרתה תקלה במשיכצ המידע - נסה/י שוב מאוחר יותר"
+        );
+        setTimeout(() => {
+          localSendMessage(currentChatId, mainMessage(true), createKeyboaed());
+        }, 4500);
+        changeTelegramState("main_chooseAction");
+      }
+      console.log(
+        "done with Waze",
+        (Date.now() - startGettingFromWaze) / 1000,
+        " seconds"
+      );
+      let day = new Date().getDay();
+      let hour = new Date().getHours();
+      let quarter = calcQurater(new Date().getMinutes() / 60);
+      let hourlyData = selectedRouteData.avgByDays[day][hour]["hourAvg"];
+      let quarterData = selectedRouteData.avgByDays[day][hour][quarter];
+      let resultAvg = getRelativlyHourlyData(hourlyData, quarterData);
+      if (resultAvg !== 0) {
+        exactData.avgForThisTime = resultAvg;
+      }
+      localSendMessage(currentChatId, liveUpdate({ exactData }));
+      setTimeout(() => {
+        localSendMessage(currentChatId, mainMessage(true), createKeyboaed());
+      }, 4500);
+      changeTelegramState("main_chooseAction");
+      break;
+
+    case "main_avg_chooseRoute":
+      routes = await getRoutes("from to");
+    selectedRouteIndex =  Number(currentMessage.slice(0, 2)) - 1
+      if (isNaN(selectedRouteIndex)) {
+        selectedRouteIndex = Number(currentMessage.slice(0, 1)) - 1;
+      }
+      if (isNaN(selectedRouteIndex)) {
+        // handle wrong input
+        break;
+      }
+      selectedRouteData = await trafficRouteLogic.getTrafficRoute({
+        _id: routes[selectedRouteIndex]._id,
+      });
+      let messageId;
+      createDataChart(selectedRouteData)
+        .then(async (imagePath) => {
+          createWatermark(imagePath, selectedRouteData._id).then(
+            async (pathWithWaterMark) => {
+              // await sendImage(chatId, pathWithWaterMark);
+              console.log("image path", pathWithWaterMark);
+              messageId = await localSendImage(
+                currentChatId,
+                pathWithWaterMark
+              );
+              localSendMessage(
+                currentChatId,
+                graphWillDelete(),
+                createKeyboaed()
+              );
+              console.log("messageId", messageId.message_id);
+              await newMessageId({
+                chatId: currentChatId,
+                messageId: messageId.message_id,
+              });
+              // setTimeout(() => {
+              //   localDeleteMessage(currentChatId, messageId.message_id);
+              // }, 7000);
+              setTimeout(() => {
+                localSendMessage(
+                  currentChatId,
+                  mainMessage(true),
+                  createKeyboaed()
+                );
+              }, 4500);
+              changeTelegramState("main_chooseAction");
+            }
+          );
+        })
+        .catch((e) => {
+          console.log("errr", e);
+          localSendMessage(currentChatId, "יש לנו תקלה");
+          localSendMessage(currentChatId, mainMessage(true), createKeyboaed());
+          changeTelegramState("main_chooseAction");
+        });
+
+      break;
+    default:
+      break;
+  }
+};
+let getRelativlyHourlyData = (quarterly, hourly) => {
+  let quarterWeight = Math.min(
+    1,
+    hourly.count > 0 ? quarterly.count / hourly.count : 0
+  );
+  let hourlyWeight = 1 - quarterWeight;
+  let result = hourly.value * hourlyWeight + quarterly.value * quarterWeight;
+  return result;
+};
+module.exports = { newMessage, checkUser };

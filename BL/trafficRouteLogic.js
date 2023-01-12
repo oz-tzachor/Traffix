@@ -6,8 +6,6 @@ const {
   checkNewerUpdate,
   getDatesForDailyAvg,
 } = require("../DL/moment/moment");
-const { sendMessageDev, sendMessage } = require("../DL/bot/bot");
-const { production } = require("..");
 // const { createImage } = require("../DL/chart/chart");
 
 ///New route
@@ -20,9 +18,14 @@ const newTraffRoute = async (newTraffRouteDetails) => {
   let newTrafRoute = await TrafficRouteController.create(newTraffRouteDetails);
   return newTrafRoute;
 };
+///Get MAny routes
+const getTrafficRoutes = async (filter,select) => {
+  let traffRoutes = await TrafficRouteController.read(filter,select);
+  return traffRoutes;
+};
 ///New route
-const getTrafficRoutes = async (filter) => {
-  let traffRoutes = await TrafficRouteController.read(filter);
+const getTrafficRoute = async (filter) => {
+  let traffRoutes = await TrafficRouteController.readOne(filter);
   return traffRoutes;
 };
 //update route
@@ -72,7 +75,6 @@ const getTrafficRouteAvgGeneral = async (filter, type = "daily") => {
       _id: filter.route,
     });
     let prevAvgByDaysData = currentRoute.avgByDays;
-
     let calcQurater = (min) => {
       let quart;
       if (min <= 0.25) {
@@ -128,7 +130,7 @@ const getTrafficRouteAvgGeneral = async (filter, type = "daily") => {
     }
 
     //check if data is relevant
-    console.log("data length", data.length);
+    // console.log("data length", data.length);
     //
     let dayArr;
     Object.keys(resultByWeek).forEach((day) => {
@@ -309,7 +311,6 @@ const getTrafficRouteAvgGeneral = async (filter, type = "daily") => {
     }
     // await updateRouteDetails(filter, { avgByDays: resultByWeek });
     return resultsMain[currDayOfTheWeek];
-    // Save data by quwarter hour
     //Then Compare current result with currebt quearter avg  - and then cimpare result with hourly avg - if higher then threshold - then notice the user
   } catch (e) {
     console.log("e", e);
@@ -361,21 +362,25 @@ let manageRouteAvg = async () => {
   // sendMessageDev("Start calculation of daily avg of all routes");
   //main function
   try {
+    let indexInRoutes = 0;
     let routes = await getTrafficRoutes({
       isActive: true,
     });
+    let routesLength = routes.length;
 
     let dates = getDatesForDailyAvg();
     let filter = { route: routes[0]._id, dateOfUpdate: dates };
     let runFunc = (filter, callback, stop) => {
+      console.log(
+        "calc route Started",
+        routes[indexInRoutes].from,
+        "-",
+        routes[indexInRoutes].to
+      );
       getTrafficRouteAvgNew(filter)
         .then(() => {
-          console.log(
-            "calc route over",
-            routes[indexInRoutes].from,
-            "-",
-            routes[indexInRoutes].to
-          );
+          console.log("Calc route over!");
+          console.log(" ");
           callback();
         })
         .catch((e) => {
@@ -383,8 +388,7 @@ let manageRouteAvg = async () => {
           stop();
         });
     };
-    let indexInRoutes = 0;
-    let routesLength = routes.length;
+
     let stop = () => {
       indexInRoutes = routesLength + 2;
       console.log("Done calc avg");
@@ -467,17 +471,18 @@ const getTrafficRouteAvgNew = async (filter) => {
     }
     return quart;
   };
+  let daysWithData = [];
   //
   let fieldUpdated = [];
   try {
     let currentRoute = await TrafficRouteController.readOne({
       _id: filter.route,
     });
-    let prevAvgByDaysData = currentRoute.prevAvgByDaysDataף;
+    let prevAvgByDaysData = currentRoute.avgByDays;
 
     //
     let data;
-    if (filter.route.toString() === "63bc4da2a3f44dfe5c611479") {
+    if (filter.route.toString() === "63bb0ea55944eebd34bd1357") {
       console.log("x");
     }
     let tempFilter;
@@ -492,27 +497,43 @@ const getTrafficRouteAvgNew = async (filter) => {
         };
       }
     } else {
+      let { route, dateOfUpdate } = filter;
       tempFilter = filter;
       //if there is מם earlier data of this route -change filter to get all the data of this route and calc avg
       if (currentRoute.zip) {
-        let { route, dateOfUpdate } = filter;
         tempFilter = { route: filter.route };
         tempFilter = {
           $or: [{ route }, { zip: currentRoute.zip }],
         };
+      }else{
+        tempFilter={route}
       }
 
       console.log("updated", currentRoute.lastAvgUpdate);
     }
     //Getting the data
     data = await trafficUpdateController.read(tempFilter);
-    //check if data is relevant
-    console.log("data length", data.length);
+    //check if there is data
+    // console.log("data length", data.length);
     if (!data.length) return;
+    //check if data in newer thean last update
+    let lastAvgUpdateOnData = data[data.length - 1].dateOfUpdate;
+    if (currentRoute.lastAvgUpdate) {
+      let newDataAvilable = checkNewerUpdate(
+        new Date(lastAvgUpdateOnData),
+        new Date(currentRoute.lastAvgUpdate)
+      );
+      if (!newDataAvilable) {
+        //abort this function
+        console.log("no new data!");
+        return;
+      }
+    }
+
     //force collecting all data by defining date very old
-    currentRoute.lastAvgUpdate = new Date(
-      data[data.length - 1].dateOfUpdate
-    ).setDate(new Date(data[data.length - 1].dateOfUpdate).getDate() - 7);
+    // currentRoute.lastAvgUpdate = new Date(
+    //   data[data.length - 1].dateOfUpdate
+    // ).setDate(new Date(data[data.length - 1].dateOfUpdate).getDate() - 7);
     //
     let dayArr;
     Object.keys(resultByWeek).forEach((day) => {
@@ -539,9 +560,13 @@ const getTrafficRouteAvgNew = async (filter) => {
           )
         );
       });
+      if (dayArr.length > 0) {
+        daysWithData.push(day);
+      }
 
       //calc data by hour
       let hourArr;
+
       for (let index = 0; index < 24; index++) {
         let hourlySum = 0;
         let hourlyCounter = 0;
@@ -609,77 +634,81 @@ const getTrafficRouteAvgNew = async (filter) => {
     data.length;
     //Check again - if was old data or not
     let skipAddToAvgCalc = false;
-    if (!prevAvgByDaysData) {
-      prevAvgByDaysData = resultsMain;
-      skipAddToAvgCalc = true;
-    }
-    let lastAvgUpdate = data[data.length - 1].dateOfUpdate;
-    let currDayOfTheWeek = new Date().getDay();
-    if (!skipAddToAvgCalc) {
-      // console.log("There is prev data  - creating daily");
-      //set the DB update
-      Object.keys(resultsMain).forEach((resDay) => {
-        let resData = resultsMain[resDay];
-        //add results of the day to the total avg;
-        Object.keys(resData).forEach((index) => {
-          const hourElement = resData[index];
-          //run on the results from today
-          if (hourElement.hourAvg.value !== 0) {
-            //if there is new data in this hour
-            Object.keys(resData[index]).forEach((j) => {
-              const newCount = resData[index][j].count;
-              const newValue = resData[index][j].value;
-              if (newCount !== 0) {
-                const oldCount =
-                  prevAvgByDaysData[currDayOfTheWeek][index][j].count;
-                const oldValue =
-                  prevAvgByDaysData[currDayOfTheWeek][index][j].value;
-                prevAvgByDaysData[currDayOfTheWeek][index][j].value =
-                  oldValue +
-                  (newCount / (oldCount + newCount)) * (newValue - oldValue);
-                prevAvgByDaysData[currDayOfTheWeek][index][j].count += newCount;
-                fieldUpdated.push({
-                  day: currDayOfTheWeek,
-                  hour: index,
-                  quarter: j,
-                  oldVal: oldValue,
-                  oldCount: oldCount,
-                  newCount: newCount,
-                  newVal: newValue,
-                  combinedVal:
-                    prevAvgByDaysData[currDayOfTheWeek][index][j].value,
-                  combinedCount:
-                    prevAvgByDaysData[currDayOfTheWeek][index][j].count,
-                });
-              }
-              //run on results per quarter -notice the hourly
-            });
-          }
+    // console.log("days with data", daysWithData.length);
+    // console.log("days with data", daysWithData);
+    if (daysWithData.length > 0) {
+      if (!prevAvgByDaysData) {
+        prevAvgByDaysData = resultsMain;
+        skipAddToAvgCalc = true;
+      }
+      let currDayOfTheWeek = new Date().getDay();
+      if (!skipAddToAvgCalc) {
+        // console.log("There is prev data  - creating daily");
+        //set the DB update
+        Object.keys(resultsMain).forEach((resDay) => {
+          let resData = resultsMain[resDay];
+          //add results of the day to the total avg;
+          Object.keys(resData).forEach((index) => {
+            const hourElement = resData[index];
+            //run on the results from today
+            if (hourElement.hourAvg.value !== 0) {
+              //if there is new data in this hour
+              Object.keys(resData[index]).forEach((j) => {
+                const newCount = resData[index][j].count;
+                const newValue = resData[index][j].value;
+                if (newCount !== 0) {
+                  const oldCount = prevAvgByDaysData[resDay][index][j].count;
+                  const oldValue = prevAvgByDaysData[resDay][index][j].value;
+                  prevAvgByDaysData[resDay][index][j].value =
+                    oldValue +
+                    (newCount / (oldCount + newCount)) * (newValue - oldValue);
+                  prevAvgByDaysData[resDay][index][j].count += newCount;
+                  fieldUpdated.push({
+                    day: resDay,
+                    hour: index,
+                    quarter: j,
+                    oldVal: oldValue,
+                    oldCount: oldCount,
+                    newCount: newCount,
+                    newVal: newValue,
+                    combinedVal: prevAvgByDaysData[resDay][index][j].value,
+                    combinedCount: prevAvgByDaysData[resDay][index][j].count,
+                  });
+                }
+                //run on results per quarter -notice the hourly
+              });
+            }
+          });
         });
+        console.log("fields updated(new data)", fieldUpdated.length);
+        // console.log("fields", fieldUpdated);
+        // return resultsMain[currDayOfTheWeek];
+      }
+      //
+      filter = { _id: currentRoute._id };
+      console.log("There is new data,saving to DB");
+      await updateRouteDetails(filter, {
+        avgByDays: prevAvgByDaysData,
+        lastAvgUpdate: lastAvgUpdateOnData,
       });
-      console.log("fields updated(new data)", fieldUpdated.length);
-      // console.log("fields", fieldUpdated);
+      // await updateRouteDetails(filter, { avgByDays: resultByWeek });
       return resultsMain[currDayOfTheWeek];
+    } else {
+      console.log("No new data to update");
     }
-    //
-    filter = { _id: currentRoute._id };
-    await updateRouteDetails(filter, {
-      avgByDays: prevAvgByDaysData,
-      lastAvgUpdate,
-    });
-    // await updateRouteDetails(filter, { avgByDays: resultByWeek });
-    return resultsMain[currDayOfTheWeek];
     // Save data by quwarter hour
   } catch (e) {
     console.log("e", e);
   }
 };
-//Analyze the data
 
+//Analyze the data
+1;
 let trafRequests = {
   newTraffRoute,
   updateRouteDetails,
   getTrafficRoutes,
+  getTrafficRoute,
   manageRouteAvg,
   analyzeTheData,
   getTrafficRouteAvgGeneral,
