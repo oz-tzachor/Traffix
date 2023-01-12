@@ -54,8 +54,8 @@ require("./DL/db")
         // analyzeTheData();
         // createAllGrabCrons();
         // grabFromWaze()
-        let data = await getTrafficRoute({ _id: "63bb0ea55944eebd34bd1357" });
-        predictFromWaze(true,data)
+        // let data = await getTrafficRoute({ _id: "63bb0ea55944eebd34bd1357" });
+        // predictFromWaze(true,data)
         // console.log(
           //   "path",
           
