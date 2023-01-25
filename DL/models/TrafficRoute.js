@@ -15,11 +15,17 @@ const TrafficRoute = new mongoose.Schema(
     },
     wazeUrl: {
       type: String,
-      uniqe:true
+      uniqe: true,
+    },
+    wazeUrlPredict: {
+      type: String,
+      uniqe: true,
     },
     avgByDays: {},
-    predictByDays: {},
     lastAvgUpdate: { type: Date },
+    predictByDays: {},
+    lastPredictUpdate: { type: Date },
+    predictionCompleted: { type: Boolean, default: false },
     type: { type: String, enum: ["waze", "pkk"], default: "waze" },
     isTrafficJam: { type: Boolean, default: false },
     isActive: { type: Boolean, default: true },

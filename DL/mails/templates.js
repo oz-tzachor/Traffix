@@ -3,18 +3,16 @@ const lineBreak = "<br/>";
 const styles = {
   greeting: { header: "border:1px solid red" },
 };
-const greeting = (firstName) => {
-  return `<div style=dir:ltr>
-  <h2 style=${styles.greeting.header}>
-  Hi ${firstName}!
+const sendVerificationCode = (email, code) => {
+  return `<div style="dir:"rtl"; color:green;">
+  <h2>
+  היי!
   </h2>
   <h3>
-  Wer'e so happpy to see you with us!</h3>
-  <a  href='https://www.google.com'>
-  <button>
-  Google
-  </button>
-  </a>
+ אנחנו מאד שמחים שהצטרפתם אלינו!</h3>
+<h2>
+קוד האימות הוא : ${code}
+</h2>
   </div>`;
 };
 const resetPass = (details) => {
@@ -33,5 +31,5 @@ const resetPass = (details) => {
   </div>`;
 };
 
-const htmlTemplates = { greeting, resetPass };
+const htmlTemplates = { sendVerificationCode, resetPass };
 module.exports = htmlTemplates;

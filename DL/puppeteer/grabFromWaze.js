@@ -198,11 +198,12 @@ let grabFromWaze = async (oneRoute = false, oneRouteData = undefined) => {
     });
     if (oneRoute) {
       //request for one route
-      let res = await grabData(browser, "waze", oneRouteData,true);
+      let res = await grabData(browser, "waze", oneRouteData, true);
       return res;
     }
     let routes = await trafficRouteLogic.getTrafficRoutes({
       isActive: true,
+      wazeUrl: { $ne: null },
     });
     let indexInAddress = 0;
     let addressLength = routes.length;

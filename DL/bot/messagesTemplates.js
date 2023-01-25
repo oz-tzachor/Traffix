@@ -23,7 +23,7 @@ let addBackOption = () => {
   return message;
 };
 exports.followTheInstructions = () => {
-  let message = `שלחת מספר שאינו נכלל באופציות ששלחנו כאן למעלה ${twoLine}תשתדל להקפיד על ההוראות ${emojis.fix}`;
+  let message = `שלחת מספר שאינו נכלל באופציות ששלחנו  ${twoLine}השתדלו להקפיד על ההוראות ${emojis.fix}`;
   return message;
 };
 exports.followTheInstructionsNumbers = () => {
@@ -37,8 +37,7 @@ exports.loginMessage = () => {
   return message;
 };
 exports.inputEmailMessage = () => {
-  let message = `מעולה! ${emojis.smiley}${twoLine}אנחנו נשמח מאד שתצטרף אלינו! ככה נוכל לעזור לך לנהל כמו שצריךאת החסכון ליום גשום!${twoLine}
-  להמשך התהליך אנא שלח את כתובת המייל שלך ${emojis.email}`;
+  let message = `מעולה! ${emojis.smiley}${twoLine}אנחנו נשמח מאד שתצטרפו אלינו! ככה נוכל לעזורלכם לנהל טוב יותר את השגרה שלכם!${twoLine}להמשך התהליך אנא שלחו את כתובת המייל שלכם${emojis.email}`;
   return message;
 };
 
@@ -61,8 +60,29 @@ exports.resetEmail = (email) => {
   return message;
 };
 
-exports.signedUpSuuccessfully = () => {
-  let message = `מצוין! נרשמת למערכת שלנו! כן, זה עד כדי כך פשוט! ${emojis.coolGuy}`;
+exports.codeSent = (email) => {
+  let codeValidTime = 5;
+  let message = `שלחנו לתיבת המייל ${email} קוד אימות בן 6 ספרות.\n\nאנא בדקו את תיבת המייל ושלחו כאן חזרה את קוד האימות\n\nאם אינכם רואים את הקוד,בדקו גם בתיבת הספאם\n\nקוד זה בתוקף ל${codeValidTime} דקות בלבד\n\n אז מה הקוד שקיבלתם? ${emojis.password}`;
+  return message;
+};
+exports.codeIsInvalid = (email, code) => {
+  let message = `אופס ${emojis.sad}\n\nהקוד ששלחתם לנו לא מתאים למה ששמור אצלנו במערכת ${emojis.x}\n\nאנחנו שלחנו את הקוד למייל:\n${email}\n\nהקוד שקיבלנו מכם הוא: ${code}\n\nלתיקון של הקוד ששלחתם,שלחו עכשיו את הקוד הנכון.\n\nלתיקון כתובת המייל שלחו את הספרה 9 `;
+  return message;
+};
+exports.codeIsValid = () => {
+  let message = `יש!\n\nזה הקוד הנכון ששלחנו אליכם! ${emojis.fix}\n\nאנחנו תיכף מסיימים את ההרשמה!\n\nאנא שלחו שם פרטי:`;
+  return message;
+};
+exports.sendLastName = (firstName) => {
+  let message = `היי ${firstName}!\n\nכיף שהצטרפת אלינו!\n\nאנחנו ממש בשלב האחרון,אנא שלחו שם משפחה:`;
+  return message;
+};
+exports.signedUpSuuccessfully = (firstName, lastName) => {
+  let message = `${firstName} ${lastName}!\n\nברוכים הבאים  לTraffix!\n\nאנחנו מאד מתרגשים שהצטרפתם אלינו!`;
+  return message;
+};
+exports.firstTimeMainMenu = (firstName, lastName) => {
+  let message = `בטראפיקס אנחנו מציעים המון פיצ'רים שיעזרו לך להתנהל בצורה נוחה יותר בכבישים\n\nתיכף תראו את התפריט הראשי של המערכת,ממנו תוכלו לנווט לכל חלקי המערכת ולהגדיר לעצמכם את השירותים שיעזרו לכם!\n\nבכל שלב תוכלו לחזור לתפריט הראשי- חפשו את הכפתור המתאים!\n\nמאחלים לכם בהצלחה!\n\nצוות Traffix`;
   return message;
 };
 
@@ -86,16 +106,46 @@ exports.liveUpdate = ({ exactData }) => {
   if (exactData.time.toString().length > 2) {
     exactData.time = exactData.time.toString().slice(0, 4);
   }
-  let message = `עדכון:\n\nמסלול: ${exactData.title}\nזמן נסיעה: ${exactData.time} דקות\nשעת עדכון: ${lastUpdateTime}`;
+  let message = `עדכון:\n\nמסלול: ${exactData.title}\nזמן נסיעה: ${exactData.time} דקות\nשעת עדכון: ${lastUpdateTime}\n`;
   if (exactData.avgForThisTime) {
-    message = `עדכון:\n\nמסלול: ${exactData.title}\nזמן נסיעה: ${exactData.time} דקות\nזמן  ממוצע לשעה זו: ${exactData.avgForThisTime} דקות\nשעת עדכון: ${lastUpdateTime}`;
+    message = `עדכון:\n\nמסלול: ${exactData.title}\nזמן נסיעה: ${exactData.time} דקות\nזמן  ממוצע לשעה זו: ${exactData.avgForThisTime} דקות\nשעת עדכון: ${lastUpdateTime}\n`;
   }
   // `Hourly avg: ${resultAvg}`
   return message;
 };
 //
 // Graph updates//
-exports.graphWillDelete = (minutes =10) => {
-  message = `גרף זה זמין לשימושך ל${minutes} דקות ${emojis.dashboard} ${emojis.time}`
+exports.graphWillDelete = (minutes = 10) => {
+  message = `גרף זה זמין לשימושך ל${minutes} דקות ${emojis.dashboard} ${emojis.time}`;
+  return message;
+};
+//Schedule updates
+exports.scheduleUpdatesFirstMessage = () => {
+  message = `נהדר! בואו נתקדם!\nשירות זה מאפשר לך לקבל עדכון בשעה קבועה לגבי משך הנסיעה במסלול שתבחרו!\nלצורך זה נצטרך לבחור את המסלול הרצוי\nאנא בחרו מסלול שעליו תרצו לקבל הודעות קבועות:`;
+  return message;
+};
+exports.chooseScheduleTime = (route) => {
+  message = `מעולה!\nבחרתם במסלול: ${route.from}-${route.to}\n\nעכשיו צריך לבחור את השעה שבה תרצו לקבל את ההודעה עם המידע על המסלול שבחרתם:`;
+  return message;
+};
+exports.scheduleUpdateAddSuccessfully = (route, hour) => {
+  message = `יש! ${emojis.confirm}\n\nהוספנו בהצלחה את ההודעה המתוזמנת הזו!\n\nמסלול: ${route.from}-${route.to}\n\nשעה: ${hour}\n\nאין עליכם!${emojis.heartFace}\n\nבמידה ותרצו להוסיף הודעות נוספות/שעות נוספות תוכלו לעשות זאת מהתפריט הראשי!`;
+  return message;
+};
+//Schdule hour range for alerts about traffic jams;
+exports.scheduleAlertsFirtMessage = () => {
+  message = `נהדר! בואו נתקדם!\n\nשירות זה יאפשר לכם לקבל התראה כשמתחיל עומס תנועה בנתיב שתבחרו בתוך טווח שעות שתתבקשו להגדיר\n\nאז קודם כל,אנא בחרו את המסלול עליו תרצו לקבל התראות עומס תנועה:`;
+  return message;
+};
+exports.scheduleAlertsChooseFromHour = (route) => {
+  message = `מעולה!\nבחרתם במסלול: ${route.from}-${route.to}\n\nעכשיו צריך לבחור את טווח השעות שבה תרצו לקבל את ההתראה על עומס תנועה שמתחיל להיווצר במסלול שבחרתם\n\nראשית,אנא בחרו שעת התחלה(שעה שהחל ממנה תרצו לקבל התראות):`;
+  return message;
+};
+exports.scheduleAlertsChooseToHour = (hour) => {
+  message = `מצוין! ${emojis.smiley}\n\n בחרת לקבל התראות החל מהשעה ${hour}\n\nעכשיו צריך לבחור עד איזה שעה תרצו לקבל התראות:`;
+  return message;
+};
+exports.scheduleAlertsAddSuccessfully = (route, fromHour, toHour) => {
+  message = `יאיי! ${emojis.smiley}\n\nשמרנו את ההתראה הזו ${emojis.confirm}\n\nמסלול: ${route.from}-${route.to}\n\nבין השעות: ${fromHour}-${toHour}\n\nבמידה ותרצו להוסיף התראות חדשות על מסלולים נוספים,תוכלו לעשות זאת מהתפריט הראשי!`;
   return message;
 };

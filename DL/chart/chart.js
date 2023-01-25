@@ -1,5 +1,5 @@
 const chartNodeJs = require("chartjs-node-canvas");
-const width = 800; // define width and height of canvas
+const width = 1100; // define width and height of canvas
 const height = 500;
 const fs = require("fs");
 const chartCallback = (ChartJS) => {
@@ -15,22 +15,22 @@ const canvasRenderService = new chartNodeJs.ChartJSNodeCanvas({
 let createDataChart = async (route, type = "daily") => {
   return new Promise(async (resolve, reject) => {
     try {
-      let avgByDays = route.avgByDays;
-      let day = new Date().getDay() -1;
+      let avgByDays = route.predictByDays||route.avgByDays;
+      let day = new Date().getDay();
       let dataInput = [];
       let labelsInput = [];
       let lastKnownData = 0;
       let sum = 0;
       Object.keys(avgByDays[day]).forEach((hour) => {
-        let hourAvg = avgByDays[day][hour]["hourAvg"].value;
+        let hourAvg = route.predictByDays?avgByDays[day][hour]["hourAvg"]:avgByDays[day][hour]["hourAvg"].value;
+    
         if (hourAvg === 0) {
           hourAvg = lastKnownData;
         } else {
           lastKnownData = hourAvg;
         }
         sum += hourAvg;
-        if(Number(hour)>4 &&Number(hour)<=23){
-
+        if (Number(hour) > 4 && Number(hour) <= 23) {
           if (hourAvg !== 0 && !isNaN(hourAvg)) {
             dataInput.push(hourAvg);
           }
@@ -44,6 +44,12 @@ let createDataChart = async (route, type = "daily") => {
       });
       let maxValue = Math.floor(Math.max(...dataInput) * 1.2);
       let minValue = Math.floor(Math.min(...dataInput) * 0.8);
+      if(route.predictByDays){
+        console.log('predicting',dataInput.length);
+      }else{
+        console.log('avg without prediction',dataInput.length);
+      }
+      return;
       let dataObj = {
         dataInput,
         labelsInput,
@@ -51,6 +57,8 @@ let createDataChart = async (route, type = "daily") => {
         minValue,
         route,
         type,
+        width,
+        height,
         chartType: "line",
       };
       let imageRes = await createImage(dataObj);
@@ -79,8 +87,17 @@ let createDataChart = async (route, type = "daily") => {
   });
 };
 const createImage = async (dataObj) => {
-  let { dataInput, labelsInput, maxValue, minValue, route, type, chartType } =
-    dataObj;
+  let {
+    dataInput,
+    labelsInput,
+    maxValue,
+    minValue,
+    route,
+    type,
+    chartType,
+    width,
+    height,
+  } = dataObj;
   try {
     let colors = {
       mainOrange: "#f39c12",
@@ -99,7 +116,8 @@ const createImage = async (dataObj) => {
       labels: labelsInput,
       datasets: [
         {
-          label: `${new Date(route.lastAvgUpdate).toLocaleDateString()}`,
+          // label: `${new Date(route.lastAvgUpdate).toLocaleDateString()}`,
+          label: `${width}x${height}`,
           data: dataInput,
           borderColor: colors.mainOrange,
           backgroundColor: "white",

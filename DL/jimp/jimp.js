@@ -6,8 +6,8 @@ const createWatermark = async (currentImagePath, routeId) => {
     let waterMarkPath = `uploads/graph/watermarks/${routeId}.png`;
     let logoPath = "assets/images/watermark2.jpg";
     var options = {
-      ratio: 0.35, // Should be less than one
-      opacity: 0.20, //Should be less than one
+      ratio: 0.65, // Should be less than one
+      opacity: 0.2, //Should be less than one
       dstPath: waterMarkPath,
     };
     watermark

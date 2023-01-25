@@ -15,18 +15,18 @@ const TelegramUser = new mongoose.Schema(
     lastName: {
       type: String,
     },
+    favRoutes: [{ type: mongoose.SchemaTypes.ObjectId, ref: "TrafficRoute" }],
     updates: [
       {
         route: { type: mongoose.SchemaTypes.ObjectId, ref: "TrafficRoute" },
-        fromHour: { type: Date, required: true },
-        toHour: { type: Date, required: true },
+        hour: { type: String, required: true },
       },
     ],
     alerts: [
       {
         route: { type: mongoose.SchemaTypes.ObjectId, ref: "TrafficRoute" },
-        fromHour: { type: Date, required: true },
-        toHour: { type: Date, required: true },
+        fromHour: { type: String, required: true },
+        toHour: { type: String, required: true },
       },
     ],
     state: {
@@ -37,20 +37,26 @@ const TelegramUser = new mongoose.Schema(
     lastStateUpdate: {
       type: Date,
       required: true,
+      default: new Date(),
     },
-    // storeDetails: {
-    //   amount: { type: Number, required: true },
-    //   description: { type: String },
-    //   budgetId: {
-    //     type: mongoose.SchemaTypes.ObjectId,
-    //     ref: "Budget",
-    //     required: true,
-    //   },
-    //   budgetName: {
-    //     type: String,
-    //     required: true,
-    //   },
-    // },
+    storeDetails: {
+      scheduleHour: { type: String },
+      route: {
+        type: String,
+      },
+      fromHour: {
+        type: String,
+      },
+      toHour: {
+        type: String,
+      },
+      routeFrom: {
+        type: String,
+      },
+      routeTo: {
+        type: String,
+      },
+    },
     authenticated: {
       type: Boolean,
       required: true,

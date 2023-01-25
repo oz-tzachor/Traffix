@@ -1,6 +1,6 @@
 const nodemailer = require("nodemailer");
 const htmlTemplates = require("./templates");
-let senderDetails = "ozi380node@gmail.com <oz-tzuch>";
+let senderDetails = "Traffix <Traffix@gmail.com>";
 let transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 465,
@@ -10,6 +10,19 @@ let transporter = nodemailer.createTransport({
     pass: process.env.GMAIL_APP_PASSWORD,
   },
 });
+let sendVerificationCode = async (email, code) => {
+  try {
+    await sendMail({
+      to: email,
+      subject: "קוד האימות מ Traffix",
+      text: "קוד האימות מ Traffix",
+      html: htmlTemplates.sendVerificationCode(email, code),
+    });
+    return true;
+  } catch (e) {
+    console.log("e", e);
+  }
+};
 let mail = async () => {
   sendMail({
     to: "oz@umoove.me",
@@ -46,5 +59,5 @@ const sendMail = async (emailDetails) => {
   });
 };
 
-const mails = { mail, resetPassMail };
+const mails = { mail, sendVerificationCode, resetPassMail };
 module.exports = mails;
