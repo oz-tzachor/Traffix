@@ -1,18 +1,18 @@
 # Traffix
 
-Traffix is a personal project that utilizes web scraping techniques with Puppeteer to gather traffic information from the largest traffic providers, such as Google Maps, Waze, and more. Using this data, it calculates drive time averages by days, weeks, months, and more.
+[![Traffic light icon](https://raw.githubusercontent.com/github/explore/main/topics/traffic-light/traffic-light.svg)](https://github.com/topics/traffic-light) Traffix is a personal project that utilizes web scraping techniques with Puppeteer to gather traffic information from the largest traffic providers, such as Google Maps, Waze, and more. Using this data, it calculates drive time averages by days, weeks, months, and more.
 
-The backend of Traffix is powered by Node.js, providing the necessary APIs and handling data processing tasks. The data is stored in a MongoDB database, ensuring efficient and scalable data management.
+[![Node.js icon](https://raw.githubusercontent.com/github/explore/main/topics/nodejs/nodejs.svg)](https://github.com/topics/nodejs) The backend of Traffix is powered by Node.js, providing the necessary APIs and handling data processing tasks. The data is stored in a MongoDB database, ensuring efficient and scalable data management.
 
-Additionally, I'm developing a Telegram bot for the UI, allowing users to access the traffic data conveniently and receive updates directly on their devices.
+[![Telegram icon](https://raw.githubusercontent.com/github/explore/main/topics/telegram/telegram.svg)](https://github.com/topics/telegram) Additionally, I'm developing a Telegram bot for the UI, allowing users to access the traffic data conveniently and receive updates directly on their devices.
 
 ## Getting Started
 
-To get started with Traffix, you will need to:
+[![Clone icon](https://raw.githubusercontent.com/github/explore/main/topics/clone/clone.svg)](https://github.com/topics/clone) To get started with Traffix, you will need to:
 
 1. Clone the repository from GitHub.
-2. Install the dependencies by running `npm install`.
-3. Start the server by running `npm start`.
+[![Install icon](https://raw.githubusercontent.com/github/explore/main/topics/install/install.svg)](https://github.com/topics/install) 2. Install the dependencies by running `npm install`.
+[![Start icon](https://raw.githubusercontent.com/github/explore/main/topics/start/start.svg)](https://github.com/topics/start) 3. Start the server by running `npm start`.
 
 ## Usage
 
