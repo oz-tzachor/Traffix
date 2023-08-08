@@ -14,10 +14,6 @@ To get started with Traffix, you will need to:
 2. Install the dependencies by running `npm install`.
 3. Start the server by running `npm start`.
 
-## Usage
-
-Once the server is started, you can access Traffix at `http://localhost:3000`. The UI will allow you to view traffic data for different locations and time periods.
-
 ## Contributing
 
 Contributions are welcome! Please feel free to open an issue or submit a pull request if you have any improvements or bug fixes.
